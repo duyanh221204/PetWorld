@@ -42,8 +42,9 @@ public class UserEntity {
     String description;
 
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     @Column(name = "role", nullable = false)
-    Role role;
+    Role role = Role.USER;
 
     @Builder.Default
     @Column(name = "is_active", nullable = false)

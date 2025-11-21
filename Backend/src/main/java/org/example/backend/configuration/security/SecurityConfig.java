@@ -3,7 +3,7 @@ package org.example.backend.configuration.security;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.example.backend.service.token.CustomJwtDecoder;
+import org.example.backend.configuration.CustomJwtDecoder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,7 +25,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     String[] PUBLIC_ENDPOINTS_GET = {};
-    String[] PUBLIC_ENDPOINTS_POST = {"/api/upload"};
+    String[] PUBLIC_ENDPOINTS_POST = {"/api/upload", "/api/email/send-verification-code"};
     String[] PUBLIC_ENDPOINTS_PUT = {};
     String[] PUBLIC_ENDPOINTS_DELETE = {};
 

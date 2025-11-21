@@ -26,7 +26,7 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class JwtUtility {
+public class JwtService {
 
     RedisTokenService redisTokenService;
 
@@ -51,7 +51,7 @@ public class JwtUtility {
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(Long.toString(userEntity.getId()))
                 .jwtID(UUID.randomUUID().toString())
-                .claim("scope", userEntity.getRole())
+                .claim("scope", userEntity.getRole().name())
                 .issuer(issuer)
                 .issueTime(new Date())
                 .expirationTime(

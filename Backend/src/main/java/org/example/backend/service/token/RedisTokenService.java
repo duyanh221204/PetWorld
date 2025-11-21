@@ -15,17 +15,30 @@ public class RedisTokenService {
 
     StringRedisTemplate stringRedisTemplate;
 
-    public void save(String jwtId, Date expirationTime) {
+    public void saveInvalidatedToken(String jwtId, Date expirationTime) {
         long timeToLive = (expirationTime.getTime() - new Date().getTime()) / 1000;
-        stringRedisTemplate.opsForValue().set(getKey(jwtId), "", timeToLive);
+        stringRedisTemplate.opsForValue().set(getInvalidatedTokenKey(jwtId), "", timeToLive);
     }
 
     public boolean isInvalidated(String jwtId) {
-        return stringRedisTemplate.hasKey(getKey(jwtId));
+        return stringRedisTemplate.hasKey(getInvalidatedTokenKey(jwtId));
     }
 
-    private String getKey(String jwtId) {
+    public void saveRefreshToken(String jwtId, String refreshToken, Date expirationTime) {
+        long timeToLive = (expirationTime.getTime() - new Date().getTime()) / 1000;
+        stringRedisTemplate.opsForValue().set(getRefreshTokenKey(jwtId), refreshToken, timeToLive);
+    }
+
+    public boolean isRefreshToken(String jwtId) {
+        return stringRedisTemplate.hasKey(getRefreshTokenKey(jwtId));
+    }
+
+    private String getInvalidatedTokenKey(String jwtId) {
         return "jwt:invalidated:" + jwtId;
+    }
+
+    private String getRefreshTokenKey(String jwtId) {
+        return "jwt:refresh:" + jwtId;
     }
 
 }
