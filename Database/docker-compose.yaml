@@ -1,0 +1,6 @@
+services:
+  redis:
+    image: redis:7
+    container_name: ${REDIS_CONTAINER_NAME}
+    ports:
+      - "${REDIS_HOST_PORT}:${REDIS_CONTAINER_PORT}"
