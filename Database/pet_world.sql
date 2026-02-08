@@ -1,236 +1,238 @@
-CREATE DATABASE pet_world;
-USE pet_world;
+create database pet_world;
+use pet_world;
 
-CREATE TABLE users (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(20) NOT NULL UNIQUE,
-    email VARCHAR(50) NOT NULL UNIQUE,
-    hashed_password VARCHAR(255) NOT NULL,
-    avatar VARCHAR(255),
-    description VARCHAR(50),
-    role ENUM('USER', 'ADMIN') NOT NULL,
-    is_active BOOLEAN NOT NULL
+create table chats
+(
+    id               bigint auto_increment
+        primary key,
+    avatar           varchar(255)              null,
+    created_at       datetime(6)               not null,
+    last_messaged_at datetime(6)               not null,
+    name             varchar(255)              null,
+    chat_type        enum ('GROUP', 'PRIVATE') not null
 );
-CREATE INDEX idx_users_username ON users(username);
-CREATE INDEX idx_users_email ON users(email);
 
-CREATE TABLE friendships (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    sender_id BIGINT NOT NULL,
-    CONSTRAINT fk_friendships_sender
-        FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
-    recipient_id BIGINT NOT NULL,
-    CONSTRAINT fk_friendships_recipient
-        FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE,
-    sent_at DATETIME(6) NOT NULL,
-    accepted_at DATETIME(6)
+create table user_groups
+(
+    id              bigint auto_increment
+        primary key,
+    cover_image_url varchar(255) null,
+    created_at      datetime(6)  not null,
+    description     text         null,
+    name            varchar(255) not null
 );
-CREATE INDEX idx_friendships_sender_id ON friendships(sender_id);
-CREATE INDEX idx_friendships_recipient_id ON friendships(recipient_id);
 
-CREATE TABLE user_groups (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    created_at DATETIME(6)
+create table users
+(
+    id              bigint auto_increment
+        primary key,
+    avatar          varchar(255)           null,
+    description     varchar(255)           null,
+    email           varchar(255)           not null,
+    hashed_password varchar(255)           not null,
+    is_active       bit                    not null,
+    role            enum ('ADMIN', 'USER') not null,
+    username        varchar(255)           not null,
+    constraint UK6dotkott2kjsp8vw4d0m25fb7
+        unique (email),
+    constraint UKr43af9ap4edm43mmtq01oddj6
+        unique (username)
 );
-CREATE INDEX idx_user_groups_name ON user_groups(name);
 
-CREATE TABLE posts (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    content TEXT,
-    created_at DATETIME(6),
-    updated_at DATETIME(6),
-    user_id BIGINT NOT NULL,
-    CONSTRAINT fk_posts_user
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    group_id BIGINT,
-    CONSTRAINT fk_posts_group
-        FOREIGN KEY (group_id) REFERENCES user_groups(id) ON DELETE CASCADE,
-    visibility ENUM('PUBLIC', 'FRIENDS_ONLY', 'GROUP_ONLY', 'PRIVATE') NOT NULL
+create table chat_messages
+(
+    id         bigint auto_increment
+        primary key,
+    content    text        not null,
+    created_at datetime(6) not null,
+    is_read    bit         not null,
+    chat_id    bigint      not null,
+    sender_id  bigint      not null,
+    constraint FKgiqeap8ays4lf684x7m0r2729
+        foreign key (sender_id) references users (id),
+    constraint FKt56nsqjwt7t4sian6vts9wg3t
+        foreign key (chat_id) references chats (id)
 );
-CREATE INDEX idx_posts_user_id ON posts(user_id);
-CREATE INDEX idx_posts_group_id ON posts(group_id);
 
-CREATE TABLE post_media_resources (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    media_url VARCHAR(255) NOT NULL,
-    display_order INT,
-    post_id BIGINT NOT NULL,
-    CONSTRAINT fk_media_post
-        FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+create table chat_participants
+(
+    id        bigint auto_increment
+        primary key,
+    joined_at datetime(6)              not null,
+    role      enum ('ADMIN', 'MEMBER') not null,
+    chat_id   bigint                   not null,
+    user_id   bigint                   not null,
+    constraint FKbhdyxo0ndtbs1t49l28y21rkw
+        foreign key (user_id) references users (id),
+    constraint FKn4feij8janlba38q59kl2ebgg
+        foreign key (chat_id) references chats (id)
 );
-CREATE INDEX idx_post_media_resources_post_id ON post_media_resources(post_id);
 
-CREATE TABLE reactions (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    sender_id BIGINT NOT NULL,
-    CONSTRAINT fk_reactions_sender
-        FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
-    post_id BIGINT NOT NULL,
-    CONSTRAINT fk_reactions_post
-        FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
-    created_at DATETIME(6) NOT NULL
+create table friendships
+(
+    id           bigint auto_increment
+        primary key,
+    accepted_at  datetime(6) null,
+    sent_at      datetime(6) not null,
+    recipient_id bigint      not null,
+    sender_id    bigint      not null,
+    constraint FK7dbvoqqjm38gke30l9mlh76hc
+        foreign key (recipient_id) references users (id),
+    constraint FKs7n4v837jm41ijdacqgfe9acw
+        foreign key (sender_id) references users (id)
 );
-CREATE INDEX idx_reactions_sender_id ON reactions(sender_id);
-CREATE INDEX idx_reactions_post_id ON reactions(post_id);
 
-CREATE TABLE comments (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    content TEXT NOT NULL,
-    created_at DATETIME(6) NOT NULL,
-    updated_at DATETIME(6),
-    sender_id BIGINT NOT NULL,
-    CONSTRAINT fk_comments_sender
-        FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
-    post_id BIGINT NOT NULL,
-    CONSTRAINT fk_comments_post
-        FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
-    parent_comment_id BIGINT,
-    CONSTRAINT fk_comments_parent
-        FOREIGN KEY (parent_comment_id) REFERENCES comments(id) ON DELETE CASCADE
+create table group_join_forms
+(
+    id         bigint auto_increment
+        primary key,
+    created_at datetime(6)  not null,
+    is_active  bit          not null,
+    title      varchar(255) not null,
+    creator_id bigint       not null,
+    group_id   bigint       not null,
+    constraint FKd90le4jqcjlfbidvvnotgk762
+        foreign key (group_id) references user_groups (id),
+    constraint FKmtbo5k1dj7twrfolv77vdbwtf
+        foreign key (creator_id) references users (id)
 );
-CREATE INDEX idx_comments_sender_id ON comments(sender_id);
-CREATE INDEX idx_comments_post_id ON comments(post_id);
 
-CREATE TABLE group_memberships (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    CONSTRAINT fk_gm_user
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    group_id BIGINT NOT NULL,
-    CONSTRAINT fk_gm_group
-        FOREIGN KEY (group_id) REFERENCES user_groups(id) ON DELETE CASCADE,
-    role ENUM('OWNER', 'ADMIN', 'MEMBER') NOT NULL,
-    joined_at DATETIME(6)
+create table group_join_form_questions
+(
+    id                 bigint auto_increment
+        primary key,
+    is_required        bit          not null,
+    question_order     int          not null,
+    question_text      varchar(255) not null,
+    group_join_form_id bigint       not null,
+    constraint FK7kewvc6o9krp06gcj2us4kkue
+        foreign key (group_join_form_id) references group_join_forms (id)
 );
-CREATE INDEX idx_group_memberships_user_id ON group_memberships(user_id);
-CREATE INDEX idx_group_memberships_group_id ON group_memberships(group_id);
 
-CREATE TABLE group_join_forms (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(100) NOT NULL,
-    created_at DATETIME(6) NOT NULL,
-    is_active BOOLEAN NOT NULL,
-    group_id BIGINT NOT NULL,
-    CONSTRAINT fk_gjf_group
-        FOREIGN KEY (group_id) REFERENCES user_groups(id) ON DELETE CASCADE,
-    user_id BIGINT NOT NULL,
-    CONSTRAINT fk_gjf_user
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+create table group_join_requests
+(
+    id                 bigint auto_increment
+        primary key,
+    submitted_at       datetime(6) not null,
+    group_id           bigint      not null,
+    group_join_form_id bigint      null,
+    sender_id          bigint      not null,
+    constraint FK8qp0kr397s0w2oeau8hs7ytcn
+        foreign key (group_id) references user_groups (id),
+    constraint FKe5v7sww4tt8qtaditt2blywb8
+        foreign key (sender_id) references users (id),
+    constraint FKgrdi5cv9uvpjiv8ku37n0nq0c
+        foreign key (group_join_form_id) references group_join_forms (id)
 );
-CREATE INDEX idx_group_join_forms_group_id ON group_join_forms(group_id);
-CREATE INDEX idx_group_join_forms_user_id ON group_join_forms(user_id);
 
-CREATE TABLE group_join_form_questions (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    question_text VARCHAR(255) NOT NULL,
-    is_required BOOLEAN NOT NULL,
-    question_order INT NOT NULL,
-    group_join_form_id BIGINT NOT NULL,
-    CONSTRAINT fk_gjfq_form
-        FOREIGN KEY (group_join_form_id) REFERENCES group_join_forms(id) ON DELETE CASCADE
+create table group_join_request_answers
+(
+    id                          bigint auto_increment
+        primary key,
+    answer_text                 varchar(255) null,
+    group_join_form_question_id bigint       not null,
+    group_join_request_id       bigint       not null,
+    constraint FKbni8ky22f7y3vbfka8to2tolg
+        foreign key (group_join_request_id) references group_join_requests (id),
+    constraint FKcrfsafb4ko59jh0x40fhq7shy
+        foreign key (group_join_form_question_id) references group_join_form_questions (id)
 );
-CREATE INDEX idx_group_join_form_questions_form_id ON group_join_form_questions(group_join_form_id);
 
-CREATE TABLE group_join_requests (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    group_id BIGINT NOT NULL,
-    CONSTRAINT fk_gjr_group
-        FOREIGN KEY (group_id) REFERENCES user_groups(id) ON DELETE CASCADE,
-    user_id BIGINT NOT NULL,
-    CONSTRAINT fk_gjr_user
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    group_join_form_id BIGINT NOT NULL,
-    CONSTRAINT fk_gjr_form
-        FOREIGN KEY (group_join_form_id) REFERENCES group_join_forms(id) ON DELETE CASCADE,
-    submitted_at DATETIME(6) NOT NULL
+create table group_memberships
+(
+    id        bigint auto_increment
+        primary key,
+    joined_at datetime(6)                       not null,
+    role      enum ('ADMIN', 'MEMBER', 'OWNER') not null,
+    group_id  bigint                            not null,
+    user_id   bigint                            not null,
+    constraint FKlq7o99bv8w6paut0ih5yhboia
+        foreign key (user_id) references users (id),
+    constraint FKovcyar57416ncttjbg293nlev
+        foreign key (group_id) references user_groups (id)
 );
-CREATE INDEX idx_group_join_requests_group_id ON group_join_requests(group_id);
-CREATE INDEX idx_group_join_requests_user_id ON group_join_requests(user_id);
-CREATE INDEX idx_group_join_requests_form_id ON group_join_requests(group_join_form_id);
 
-CREATE TABLE group_join_request_answers (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    group_join_request_id BIGINT NOT NULL,
-    CONSTRAINT fk_gjra_request
-        FOREIGN KEY (group_join_request_id) REFERENCES group_join_requests(id) ON DELETE CASCADE,
-    group_join_form_question_id BIGINT NOT NULL,
-    CONSTRAINT fk_gjra_question
-        FOREIGN KEY (group_join_form_question_id) REFERENCES group_join_form_questions(id) ON DELETE CASCADE,
-    answer_text VARCHAR(255)
+create table posts
+(
+    id         bigint auto_increment
+        primary key,
+    content    text                                                     null,
+    created_at datetime(6)                                              not null,
+    updated_at datetime(6)                                              null,
+    visibility enum ('FRIENDS_ONLY', 'GROUP_ONLY', 'PRIVATE', 'PUBLIC') not null,
+    creator_id bigint                                                   not null,
+    group_id   bigint                                                   null,
+    constraint FKpbdq30fxpf8l0v3j2eyca7odb
+        foreign key (creator_id) references users (id),
+    constraint FKsswnflfjcm7n5t357nhloykah
+        foreign key (group_id) references user_groups (id)
 );
-CREATE INDEX idx_group_join_request_answers_request_id ON group_join_request_answers(group_join_request_id);
-CREATE INDEX idx_group_join_request_answers_question_id ON group_join_request_answers(group_join_form_question_id);
 
-CREATE TABLE notifications (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    type ENUM(
-        'FRIEND_REQUEST_RECEIVED',
-        'FRIEND_REQUEST_ACCEPTED',
-        'POST_REACTED',
-        'POST_COMMENTED',
-        'COMMENT_REPLIED',
-        'GROUP_JOIN_REQUEST_RECEIVED',
-        'GROUP_JOIN_REQUEST_ACCEPTED',
-        'GROUP_JOIN_REQUEST_REJECTED'
-    ) NOT NULL,
-    created_at DATETIME(6) NOT NULL,
-    is_read BOOLEAN NOT NULL,
-    metadata JSON NOT NULL,
-    sender_id BIGINT NOT NULL,
-    CONSTRAINT fk_notifications_sender
-        FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
-    recipient_id BIGINT NOT NULL,
-    CONSTRAINT fk_notifications_recipient
-        FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE,
-    post_id BIGINT,
-    CONSTRAINT fk_notifications_post
-        FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
-    comment_id BIGINT,
-    CONSTRAINT fk_notifications_comment
-        FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE,
-    friendship_id BIGINT,
-    CONSTRAINT fk_notifications_friendship
-        FOREIGN KEY (friendship_id) REFERENCES friendships(id) ON DELETE CASCADE,
-    group_id BIGINT,
-    CONSTRAINT fk_notifications_group
-        FOREIGN KEY (group_id) REFERENCES user_groups(id) ON DELETE CASCADE
+create table comments
+(
+    id                bigint auto_increment
+        primary key,
+    content           varchar(255) not null,
+    created_at        datetime(6)  not null,
+    updated_at        datetime(6)  null,
+    parent_comment_id bigint       null,
+    post_id           bigint       not null,
+    sender_id         bigint       not null,
+    constraint FK25gve0aqih6wleb26fr0f34rw
+        foreign key (sender_id) references users (id),
+    constraint FK7h839m3lkvhbyv3bcdv7sm4fj
+        foreign key (parent_comment_id) references comments (id),
+    constraint FKh4c7lvsc298whoyd4w9ta25cr
+        foreign key (post_id) references posts (id)
 );
-CREATE INDEX idx_notifications_sender_id ON notifications(sender_id);
-CREATE INDEX idx_notifications_recipient_id ON notifications(recipient_id);
-CREATE INDEX idx_notifications_post_id ON notifications(post_id);
-CREATE INDEX idx_notifications_comment_id ON notifications(comment_id);
-CREATE INDEX idx_notifications_friendship_id ON notifications(friendship_id);
-CREATE INDEX idx_notifications_group_id ON notifications(group_id);
 
-CREATE TABLE conversations (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_1_id BIGINT NOT NULL,
-    CONSTRAINT fk_conversations_user_1
-        FOREIGN KEY (user_1_id) REFERENCES users(id) ON DELETE CASCADE,
-    user_2_id BIGINT NOT NULL,
-    CONSTRAINT fk_conversations_user_2
-        FOREIGN KEY (user_2_id) REFERENCES users(id) ON DELETE CASCADE,
-    created_at DATETIME(6) NOT NULL,
-    UNIQUE KEY unique_conversation (user_1_id, user_2_id),
-    CHECK (user_1_id < user_2_id)
+create table notifications
+(
+    id            bigint auto_increment
+        primary key,
+    created_at    datetime(6)                                                                                                                                                                    not null,
+    is_read       bit                                                                                                                                                                            not null,
+    type          enum ('COMMENT_REPLIED', 'FRIEND_REQUEST_ACCEPTED', 'FRIEND_REQUEST_RECEIVED', 'GROUP_JOIN_REQUEST_ACCEPTED', 'GROUP_JOIN_REQUEST_RECEIVED', 'POST_COMMENTED', 'POST_REACTED') not null,
+    comment_id    bigint                                                                                                                                                                         null,
+    friendship_id bigint                                                                                                                                                                         null,
+    group_id      bigint                                                                                                                                                                         null,
+    post_id       bigint                                                                                                                                                                         null,
+    recipient_id  bigint                                                                                                                                                                         not null,
+    sender_id     bigint                                                                                                                                                                         not null,
+    constraint FK13vcnq3ukas06ho1yrbc5lrb5
+        foreign key (sender_id) references users (id),
+    constraint FK599539lym3mnkbqks0u806eac
+        foreign key (post_id) references posts (id),
+    constraint FKa6886rk0ufbj3p6694x9k4h5j
+        foreign key (group_id) references user_groups (id),
+    constraint FKl7p8sj183bxuwg2sq2ltx3cpv
+        foreign key (comment_id) references comments (id),
+    constraint FKqqnsjxlwleyjbxlmm213jaj3f
+        foreign key (recipient_id) references users (id),
+    constraint FKrwmftt8hm58wejbt72oq0yrf9
+        foreign key (friendship_id) references friendships (id)
 );
-CREATE INDEX idx_conversations_user_1_id ON conversations(user_1_id);
-CREATE INDEX idx_conversations_user_2_id ON conversations(user_2_id);
 
-CREATE TABLE messages (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    content TEXT NOT NULL,
-    created_at DATETIME(6) NOT NULL,
-    is_read BOOLEAN NOT NULL,
-    sender_id BIGINT NOT NULL,
-    CONSTRAINT fk_messages_sender
-        FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
-    conversation_id BIGINT NOT NULL,
-    CONSTRAINT fk_messages_conversation
-        FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
+create table post_media_resources
+(
+    id            bigint auto_increment
+        primary key,
+    display_order int          not null,
+    media_url     varchar(255) not null,
+    post_id       bigint       not null,
+    constraint FKc4n65gd4ladhsiqjtlhcds320
+        foreign key (post_id) references posts (id)
 );
-CREATE INDEX idx_messages_sender_id ON messages(sender_id);
-CREATE INDEX idx_messages_conversation_id ON messages(conversation_id);
 
+create table reactions
+(
+    id         bigint auto_increment
+        primary key,
+    created_at datetime(6) not null,
+    post_id    bigint      not null,
+    sender_id  bigint      not null,
+    constraint FK29fnquogmcgqqgb61k66vrmph
+        foreign key (sender_id) references users (id),
+    constraint FKh8b4h9wybhu8tc5w11e8t3krc
+        foreign key (post_id) references posts (id)
+);

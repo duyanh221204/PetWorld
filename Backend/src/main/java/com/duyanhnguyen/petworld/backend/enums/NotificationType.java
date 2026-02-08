@@ -1,0 +1,11 @@
+package com.duyanhnguyen.petworld.backend.enums;
+
+public enum NotificationType {
+    FRIEND_REQUEST_RECEIVED,
+    FRIEND_REQUEST_ACCEPTED,
+    POST_REACTED,
+    POST_COMMENTED,
+    COMMENT_REPLIED,
+    GROUP_JOIN_REQUEST_RECEIVED,
+    GROUP_JOIN_REQUEST_ACCEPTED
+}
