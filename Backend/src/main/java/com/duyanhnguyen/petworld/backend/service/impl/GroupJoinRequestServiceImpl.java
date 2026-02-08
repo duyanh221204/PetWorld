@@ -151,7 +151,7 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
         groupMembershipService.createGroupMembership(groupJoinRequestEntity.getSender().getId(), groupId);
 
         notificationService.sendNotification(
-                groupJoinRequestEntity.getSender().getId(),
+                currentUserId,
                 NotificationRequest.builder()
                         .type(NotificationType.GROUP_JOIN_REQUEST_ACCEPTED)
                         .recipientId(groupJoinRequestEntity.getSender().getId())
