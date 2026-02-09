@@ -92,8 +92,15 @@ public class PostServiceImpl implements PostService {
 
     @Transactional(readOnly = true)
     @Override
-    public Page<PostResponse> getGroupPostsForNewsFeed(Long currentUserId, Pageable pageable) {
-        Page<PostEntity> postsPage = postRepository.findGroupPostsForNewsFeed(currentUserId, pageable);
+    public Page<PostResponse> getGroupsPostsForNewsFeed(Long currentUserId, Pageable pageable) {
+        Page<PostEntity> postsPage = postRepository.findGroupsPostsForNewsFeed(currentUserId, pageable);
+        return buildPostResponsePage(postsPage, currentUserId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Page<PostResponse> getFriendsPostsForNewsFeed(Long currentUserId, Pageable pageable) {
+        Page<PostEntity> postsPage = postRepository.findFriendsPostsForNewsFeed(currentUserId, pageable);
         return buildPostResponsePage(postsPage, currentUserId, pageable);
     }
 
@@ -102,8 +109,20 @@ public class PostServiceImpl implements PostService {
     public Page<PostResponse> getPostsByGroupId(Long currentUserId, Long groupId, Pageable pageable) {
         if (!groupRepository.existsById(groupId))
             throw new AppException(ErrorCode.GROUP_NOT_FOUND);
+        if (!groupMembershipRepository.existsByUserIdAndGroupId(currentUserId, groupId))
+            throw new AppException(ErrorCode.UNAUTHORIZED);
 
         Page<PostEntity> postsPage = postRepository.findByGroupIdOrderByCreatedAtDesc(groupId, pageable);
+        return buildPostResponsePage(postsPage, currentUserId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Page<PostResponse> getPostsByUserIdForProfile(Long currentUserId, Long userId, Pageable pageable) {
+        if (!userRepository.existsById(userId))
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
+
+        Page<PostEntity> postsPage = postRepository.findByCreatorIdForProfile(currentUserId, userId, pageable);
         return buildPostResponsePage(postsPage, currentUserId, pageable);
     }
 

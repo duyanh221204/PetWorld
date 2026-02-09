@@ -46,8 +46,22 @@ public class PostController {
         Long currentUserId = Long.parseLong(jwt.getSubject());
         Pageable pageable = PageRequest.of(page, Math.min(size, 10));
         return ApiResponse.<Page<PostResponse>>builder()
-                .message("Group posts retrieved successfully")
-                .data(postService.getGroupPostsForNewsFeed(currentUserId, pageable))
+                .message("Groups' posts retrieved successfully")
+                .data(postService.getGroupsPostsForNewsFeed(currentUserId, pageable))
+                .build();
+    }
+
+    @GetMapping("/friends")
+    public ApiResponse<Page<PostResponse>> getFriendsPostsForNewsFeed(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Long currentUserId = Long.parseLong(jwt.getSubject());
+        Pageable pageable = PageRequest.of(page, Math.min(size, 10));
+        return ApiResponse.<Page<PostResponse>>builder()
+                .message("Friends' posts retrieved successfully")
+                .data(postService.getFriendsPostsForNewsFeed(currentUserId, pageable))
                 .build();
     }
 
@@ -61,8 +75,23 @@ public class PostController {
         Long currentUserId = Long.parseLong(jwt.getSubject());
         Pageable pageable = PageRequest.of(page, Math.min(size, 10));
         return ApiResponse.<Page<PostResponse>>builder()
-                .message("Group posts retrieved successfully")
+                .message("Group's posts retrieved successfully")
                 .data(postService.getPostsByGroupId(currentUserId, groupId, pageable))
+                .build();
+    }
+
+    @GetMapping("/users/{userId}")
+    public ApiResponse<Page<PostResponse>> getPostsByUserIdForProfile(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Long currentUserId = Long.parseLong(jwt.getSubject());
+        Pageable pageable = PageRequest.of(page, Math.min(size, 10));
+        return ApiResponse.<Page<PostResponse>>builder()
+                .message("User's posts retrieved successfully")
+                .data(postService.getPostsByUserIdForProfile(currentUserId, userId, pageable))
                 .build();
     }
 

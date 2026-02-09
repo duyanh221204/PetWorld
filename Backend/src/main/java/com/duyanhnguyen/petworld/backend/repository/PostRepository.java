@@ -53,7 +53,55 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
                     "where gm.group = p.group and gm.user.id = :currentUserId)"
     )
     @EntityGraph(attributePaths = {"creator", "group"})
-    Page<PostEntity> findGroupPostsForNewsFeed(@Param("currentUserId") Long currentUserId, Pageable pageable);
+    Page<PostEntity> findGroupsPostsForNewsFeed(@Param("currentUserId") Long currentUserId, Pageable pageable);
+
+    @Query(
+            value = "select p from PostEntity p where exists (" +
+                    "select 1 from FriendshipEntity f " +
+                    "where ((f.sender.id = :currentUserId and f.recipient = p.creator) " +
+                    "or (f.sender = p.creator and f.recipient.id = :currentUserId)) " +
+                    "and f.acceptedAt is not null) and (" +
+                    "p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.FRIENDS_ONLY or (" +
+                    "p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.GROUP_ONLY and exists (" +
+                    "select 1 from GroupMembershipEntity gm " +
+                    "where gm.group = p.group and gm.user.id = :currentUserId))) " +
+                    "order by p.createdAt desc",
+            countQuery = "select count(p) from PostEntity p where exists (" +
+                    "select 1 from FriendshipEntity f " +
+                    "where ((f.sender.id = :currentUserId and f.recipient = p.creator) " +
+                    "or (f.sender = p.creator and f.recipient.id = :currentUserId)) " +
+                    "and f.acceptedAt is not null) and (" +
+                    "p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.FRIENDS_ONLY or (" +
+                    "p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.GROUP_ONLY and exists (" +
+                    "select 1 from GroupMembershipEntity gm " +
+                    "where gm.group = p.group and gm.user.id = :currentUserId)))"
+    )
+    @EntityGraph(attributePaths = {"creator", "group"})
+    Page<PostEntity> findFriendsPostsForNewsFeed(@Param("currentUserId") Long currentUserId, Pageable pageable);
+
+    @Query(
+            value = "select p from PostEntity p where p.creator.id = :creatorId and (:currentUserId = :creatorId or " +
+                    "p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.PUBLIC or " +
+                    "(p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.FRIENDS_ONLY and exists (" +
+                    "select 1 from FriendshipEntity f " +
+                    "where ((f.sender.id = :currentUserId and f.recipient = p.creator) " +
+                    "or (f.sender = p.creator and f.recipient.id = :currentUserId)) " +
+                    "and f.acceptedAt is not null))) " +
+                    "order by p.createdAt desc",
+            countQuery = "select count(p) from PostEntity p where p.creator.id = :creatorId and (:currentUserId = :creatorId or " +
+                    "p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.PUBLIC or " +
+                    "(p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.FRIENDS_ONLY and exists (" +
+                    "select 1 from FriendshipEntity f " +
+                    "where ((f.sender.id = :currentUserId and f.recipient = p.creator) " +
+                    "or (f.sender = p.creator and f.recipient.id = :currentUserId)) " +
+                    "and f.acceptedAt is not null)))"
+    )
+    @EntityGraph(attributePaths = {"creator"})
+    Page<PostEntity> findByCreatorIdForProfile(
+            @Param("currentUserId") Long currentUserId,
+            @Param("creatorId") Long creatorId,
+            Pageable pageable
+    );
 
     @EntityGraph(attributePaths = {"creator"})
     Page<PostEntity> findByGroupIdOrderByCreatedAtDesc(Long groupId, Pageable pageable);
