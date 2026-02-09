@@ -58,6 +58,11 @@ public class CommentEntity {
     @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, orphanRemoval = true)
     Set<CommentEntity> replies = new HashSet<>();
 
+    @JsonIgnore
+    @Builder.Default
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    Set<NotificationEntity> notifications = new HashSet<>();
+
     @Override
     public boolean equals(Object o) {
         if (this == o)

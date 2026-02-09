@@ -1,6 +1,6 @@
 package com.duyanhnguyen.petworld.backend.dto.response;
 
-import com.duyanhnguyen.petworld.backend.enums.Role;
+import com.duyanhnguyen.petworld.backend.enums.FriendshipStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -11,24 +11,10 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserResponse {
+public class FriendshipStatusResponse {
 
     Long id;
 
-    String username;
-
-    String email;
-
-    String avatar;
-
-    String description;
-
-    Long friendCount;
-
-    Long postCount;
-
-    Role role;
-
-    Boolean isActive;
+    FriendshipStatus status;
 
 }

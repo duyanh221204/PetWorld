@@ -52,6 +52,12 @@ const routes = [
         name: 'NewsFeedFriends',
         component: () => import('@/views/NewsFeedView.vue'),
         meta: { requiresAuth: true }
+    },
+    {
+        path: '/profile/:userId',
+        name: 'Profile',
+        component: () => import('@/views/ProfileView.vue'),
+        meta: { requiresAuth: true }
     }
 ]
 

@@ -7,8 +7,20 @@ export const postApi = {
         })
     },
 
-    getGroupPosts(page = 0, size = 10) {
+    getGroupsPosts(page = 0, size = 10) {
         return apiClient.get('/posts/groups', {
+            params: { page, size }
+        })
+    },
+
+    getFriendsPostsForNewsFeed(page = 0, size = 10) {
+        return apiClient.get('/posts/friends', {
+            params: { page, size }
+        })
+    },
+
+    getUserPosts(userId, page = 0, size = 10) {
+        return apiClient.get(`/posts/users/${userId}`, {
             params: { page, size }
         })
     },

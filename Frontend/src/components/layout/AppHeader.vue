@@ -2,7 +2,7 @@
   <header class="app-header">
     <div class="header-container">
       <div class="header-content">
-        <router-link to="/" class="logo-link">
+        <router-link to="/newsfeed" class="logo-link">
           <img src="/logo.png" alt="PetWorld Logo" class="logo-image" />
           <span class="logo-text">PetWorld</span>
         </router-link>

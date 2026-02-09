@@ -1,7 +1,7 @@
 package com.duyanhnguyen.petworld.backend.controller;
 
 import com.duyanhnguyen.petworld.backend.dto.response.ApiResponse;
-import com.duyanhnguyen.petworld.backend.dto.response.FriendshipResponse;
+import com.duyanhnguyen.petworld.backend.dto.response.FriendshipRequestResponse;
 import com.duyanhnguyen.petworld.backend.service.FriendshipService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -22,38 +22,38 @@ public class FriendshipController {
     FriendshipService friendshipService;
 
     @GetMapping("/friendship-requests")
-    public ApiResponse<Page<FriendshipResponse>> getFriendshipRequests(
+    public ApiResponse<Page<FriendshipRequestResponse>> getFriendshipRequests(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size
     ) {
         Long currentUserId = Long.parseLong(jwt.getSubject());
         Pageable pageable = PageRequest.of(page, Math.min(size, 100));
-        return ApiResponse.<Page<FriendshipResponse>>builder()
+        return ApiResponse.<Page<FriendshipRequestResponse>>builder()
                 .message("Friendship requests retrieved successfully")
                 .data(friendshipService.getFriendshipRequests(currentUserId, pageable))
                 .build();
     }
 
     @PostMapping("/requests/{recipientId}")
-    public ApiResponse<FriendshipResponse> sendFriendRequest(
+    public ApiResponse<FriendshipRequestResponse> sendFriendRequest(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long recipientId
     ) {
         Long currentUserId = Long.parseLong(jwt.getSubject());
-        return ApiResponse.<FriendshipResponse>builder()
+        return ApiResponse.<FriendshipRequestResponse>builder()
                 .message("Friend request sent successfully")
                 .data(friendshipService.sendFriendRequest(currentUserId, recipientId))
                 .build();
     }
 
     @PutMapping("/{friendshipId}/accept")
-    public ApiResponse<FriendshipResponse> acceptFriendRequest(
+    public ApiResponse<FriendshipRequestResponse> acceptFriendRequest(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long friendshipId
     ) {
         Long currentUserId = Long.parseLong(jwt.getSubject());
-        return ApiResponse.<FriendshipResponse>builder()
+        return ApiResponse.<FriendshipRequestResponse>builder()
                 .message("Friend request accepted successfully")
                 .data(friendshipService.acceptFriendRequest(currentUserId, friendshipId))
                 .build();

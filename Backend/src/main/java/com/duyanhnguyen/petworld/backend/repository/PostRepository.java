@@ -18,7 +18,8 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
     @Query(
             value = "select p from PostEntity p " +
                     "where p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.PUBLIC " +
-                    "or (p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.FRIENDS_ONLY and exists (" +
+                    "or (p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.FRIENDS_ONLY " +
+                    "and p.creator.id = :currentUserId or exists (" +
                     "select 1 from FriendshipEntity f " +
                     "where ((f.sender.id = :currentUserId and f.recipient = p.creator) " +
                     "or (f.sender = p.creator and f.recipient.id = :currentUserId)) " +
@@ -29,7 +30,8 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
                     "order by p.createdAt desc",
             countQuery = "select count(p) from PostEntity p " +
                     "where p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.PUBLIC " +
-                    "or (p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.FRIENDS_ONLY and exists (" +
+                    "or (p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.FRIENDS_ONLY " +
+                    "and p.creator.id = :currentUserId or exists (" +
                     "select 1 from FriendshipEntity f " +
                     "where ((f.sender.id = :currentUserId and f.recipient = p.creator) " +
                     "or (f.sender = p.creator and f.recipient.id = :currentUserId)) " +

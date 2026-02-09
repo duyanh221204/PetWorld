@@ -1,5 +1,6 @@
 package com.duyanhnguyen.petworld.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -7,7 +8,9 @@ import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -39,6 +42,11 @@ public class FriendshipEntity {
 
     @Column(name = "accepted_at")
     Instant acceptedAt;
+
+    @JsonIgnore
+    @Builder.Default
+    @OneToMany(mappedBy = "friendship", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    Set<NotificationEntity> notifications = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {

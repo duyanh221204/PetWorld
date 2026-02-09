@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         UserResponse userResponse = userMapper.toResponse(userEntity);
-        userResponse.setFriendCount(friendshipRepository.countByRecipientIdAndAcceptedAtIsNotNull(userId));
+        userResponse.setFriendCount(friendshipRepository.countByUserIdAndAcceptedAtIsNotNull(userId));
         userResponse.setPostCount(postRepository.countByCreatorId(userId));
         return userResponse;
     }

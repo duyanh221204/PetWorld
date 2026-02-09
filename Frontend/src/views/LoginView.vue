@@ -7,7 +7,7 @@
         <div class="form-card">
           <div class="form-header">
             <h1 class="form-title">Welcome Back</h1>
-            <p class="form-subtitle">Sign in to continue to PetWorld</p>
+            <p class="form-subtitle">Sign in to continue 🐾</p>
           </div>
 
           <form @submit.prevent="handleSubmit" class="form-body">
