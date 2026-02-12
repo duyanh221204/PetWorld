@@ -761,7 +761,6 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   @apply text-center py-16 text-gray-500 text-lg;
 }
 
-/* Modal Styles */
 .modal-overlay {
   @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4;
 }
