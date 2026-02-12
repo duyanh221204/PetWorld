@@ -130,7 +130,8 @@ const startCountdown = () => {
 
   updateCountdownFromTimestamp()
 
-  if (resendCountdown.value <= 0) return
+  if (resendCountdown.value <= 0)
+    return
 
   countdownInterval = setInterval(() => {
     --resendCountdown.value
@@ -164,9 +165,7 @@ const handleVerify = async () => {
 
     if (response.data.status === 200) {
       successMessage.value = 'Verification successful! Redirecting to login...'
-      setTimeout(() => {
-        router.push({ name: 'Login' })
-      }, 1500)
+      setTimeout(() => router.push({ name: 'Login' }), 1500)
     }
   } catch (error) {
     otpError.value = error.response?.data?.message || 'Invalid verification code. Please try again.'
@@ -195,9 +194,7 @@ const handleResend = async () => {
     successMessage.value = 'New verification code has been sent!'
     startCountdown()
 
-    setTimeout(() => {
-      successMessage.value = ''
-    }, 3000)
+    setTimeout(() => successMessage.value = '', 3000)
   } catch (error) {
     otpError.value = error.response?.data?.message || 'Failed to send code. Please try again.'
   } finally {

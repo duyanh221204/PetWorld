@@ -3,6 +3,8 @@
     <AppHeader />
 
     <main class="main-content">
+      <LeftSidebar />
+
       <div class="newsfeed-container">
         <div class="tabs-wrapper">
           <div class="tabs">
@@ -25,12 +27,10 @@
             <button 
               @click="switchTab('friends')" 
               :class="['tab', { active: currentTab === 'friends' }]"
-              disabled
             >
               <svg class="tab-icon" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
               </svg>
-              <span class="coming-soon">(Coming Soon)</span>
             </button>
           </div>
         </div>
@@ -75,6 +75,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
+import LeftSidebar from '@/components/layout/LeftSidebar.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import PostItem from '@/components/ui/PostItem.vue'
 import { postApi } from '@/api/post'
@@ -89,30 +90,29 @@ const currentPage = ref(0)
 const hasMore = ref(true)
 
 const switchTab = (tab) => {
-  if (tab === 'friends') return // Disabled for now
-  
   currentTab.value = tab
   posts.value = []
   currentPage.value = 0
   hasMore.value = true
-  
-  // Update route
+
   router.push({ name: `NewsFeed${tab.charAt(0).toUpperCase() + tab.slice(1)}` })
-  
+
   loadPosts()
 }
 
 const loadPosts = async () => {
-  if (isLoading.value || !hasMore.value) return
+  if (isLoading.value || !hasMore.value)
+    return
 
   isLoading.value = true
   try {
     let response
-    if (currentTab.value === 'home') {
+    if (currentTab.value === 'home')
       response = await postApi.getPostsForNewsFeed(currentPage.value, 10)
-    } else if (currentTab.value === 'group') {
-      response = await postApi.getGroupPosts(currentPage.value, 10)
-    }
+    else if (currentTab.value === 'group')
+      response = await postApi.getGroupsPosts(currentPage.value, 10)
+    else if (currentTab.value === 'friends')
+      response = await postApi.getFriendsPostsForNewsFeed(currentPage.value, 10)
 
     if (response.data.status === 200) {
       const newPosts = response.data.data.content
@@ -133,9 +133,8 @@ const handleRefreshPost = async (postId) => {
     if (response.data.status === 200) {
       const updatedPost = response.data.data
       const index = posts.value.findIndex(p => p.id === postId)
-      if (index !== -1) {
+      if (index !== -1)
         posts.value[index] = updatedPost
-      }
     }
   } catch (error) {
     console.error('Failed to refresh post:', error)
@@ -150,10 +149,10 @@ const handleToggleReaction = async (postId) => {
   const post = posts.value.find(p => p.id === postId)
   if (post) {
     if (post.isReactedByCurrentUser) {
-      post.reactionCount--
+      --post.reactionCount
       post.isReactedByCurrentUser = false
     } else {
-      post.reactionCount++
+      ++post.reactionCount
       post.isReactedByCurrentUser = true
     }
   }
@@ -164,29 +163,24 @@ const handleScroll = () => {
   const scrollHeight = document.documentElement.scrollHeight
   const clientHeight = document.documentElement.clientHeight
 
-  if (scrollTop + clientHeight >= scrollHeight - 500) {
+  if (scrollTop + clientHeight >= scrollHeight - 500)
     loadPosts()
-  }
 }
 
 onMounted(() => {
-  // Determine current tab from route
   const path = route.path
-  if (path.includes('/group')) {
+  if (path.includes('/group'))
     currentTab.value = 'group'
-  } else if (path.includes('/friends')) {
+  else if (path.includes('/friends'))
     currentTab.value = 'friends'
-  } else {
+  else
     currentTab.value = 'home'
-  }
 
   loadPosts()
   window.addEventListener('scroll', handleScroll)
 })
 
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
-})
+onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 </script>
 
 <style scoped>
@@ -199,7 +193,8 @@ onUnmounted(() => {
 }
 
 .newsfeed-container {
-  @apply max-w-2xl mx-auto px-4;
+  @apply max-w-3xl mx-auto px-4;
+  width: 100%;
 }
 
 .tabs-wrapper {

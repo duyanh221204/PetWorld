@@ -12,7 +12,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class FriendshipResponse {
+public class FriendshipRequestResponse {
 
     Long id;
 

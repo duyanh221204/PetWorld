@@ -67,6 +67,11 @@ public class PostEntity {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     Set<CommentEntity> comments = new HashSet<>();
 
+    @JsonIgnore
+    @Builder.Default
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    Set<NotificationEntity> notifications = new HashSet<>();
+
     @Override
     public boolean equals(Object o) {
         if (this == o)

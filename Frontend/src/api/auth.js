@@ -2,15 +2,11 @@ import apiClient from './axios'
 
 export const authApi = {
     login(data) {
-        return apiClient.post('/auth/login', data, {
-            'headers': { 'Content-Type': 'application/json' }
-        })
+        return apiClient.post('/auth/login', data)
     },
 
     activateUser(data) {
-        return apiClient.post('/auth/activate-user', data, {
-            'headers': { 'Content-Type': 'application/json' }
-        })
+        return apiClient.post('/auth/activate-user', data)
     },
 
     refresh() {

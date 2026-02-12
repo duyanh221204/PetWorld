@@ -61,6 +61,11 @@ public class GroupEntity {
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     Set<PostEntity> posts = new HashSet<>();
 
+    @JsonIgnore
+    @Builder.Default
+    @OneToMany(mappedBy = "group", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    Set<NotificationEntity> notifications = new HashSet<>();
+
     @Override
     public boolean equals(Object o) {
         if (this == o)

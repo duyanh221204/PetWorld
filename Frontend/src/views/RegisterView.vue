@@ -7,7 +7,7 @@
         <div class="form-card">
           <div class="form-header">
             <h1 class="form-title">Create Account</h1>
-            <p class="form-subtitle">Join the PetWorld community today</p>
+            <p class="form-subtitle">Join the PetWorld community today 💜</p>
           </div>
 
           <form @submit.prevent="handleSubmit" class="form-body">

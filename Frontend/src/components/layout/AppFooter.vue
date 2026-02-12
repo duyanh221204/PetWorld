@@ -9,7 +9,7 @@
 
         <div class="copyright-section">
           <p class="copyright-text">© 2025 PetWorld. All rights reserved.</p>
-          <p class="tagline">Connecting pet lovers around the world 🐾</p>
+          <p class="tagline">Connecting pet lovers around the world 🐕</p>
         </div>
 
         <div class="links-section">

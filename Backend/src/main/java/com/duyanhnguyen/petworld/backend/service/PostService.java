@@ -11,9 +11,13 @@ public interface PostService {
 
     Page<PostResponse> getPostsForNewsFeed(Long currentUserId, Pageable pageable);
 
-    Page<PostResponse> getGroupPostsForNewsFeed(Long currentUserId, Pageable pageable);
+    Page<PostResponse> getGroupsPostsForNewsFeed(Long currentUserId, Pageable pageable);
+
+    Page<PostResponse> getFriendsPostsForNewsFeed(Long currentUserId, Pageable pageable);
 
     Page<PostResponse> getPostsByGroupId(Long currentUserId, Long groupId, Pageable pageable);
+
+    Page<PostResponse> getPostsByUserIdForProfile(Long currentUserId, Long userId, Pageable pageable);
 
     PostResponse getPostById(Long currentUserId, Long postId);
 

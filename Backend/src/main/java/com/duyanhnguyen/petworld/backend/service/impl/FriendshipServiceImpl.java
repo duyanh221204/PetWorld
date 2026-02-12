@@ -1,13 +1,17 @@
 package com.duyanhnguyen.petworld.backend.service.impl;
 
 import com.duyanhnguyen.petworld.backend.dto.request.NotificationRequest;
-import com.duyanhnguyen.petworld.backend.dto.response.FriendshipResponse;
+import com.duyanhnguyen.petworld.backend.dto.response.FriendshipRequestResponse;
+import com.duyanhnguyen.petworld.backend.dto.response.FriendshipStatusResponse;
+import com.duyanhnguyen.petworld.backend.dto.response.UserResponse;
 import com.duyanhnguyen.petworld.backend.entity.FriendshipEntity;
 import com.duyanhnguyen.petworld.backend.entity.UserEntity;
 import com.duyanhnguyen.petworld.backend.enums.ErrorCode;
+import com.duyanhnguyen.petworld.backend.enums.FriendshipStatus;
 import com.duyanhnguyen.petworld.backend.enums.NotificationType;
 import com.duyanhnguyen.petworld.backend.exception.AppException;
 import com.duyanhnguyen.petworld.backend.mapper.FriendshipMapper;
+import com.duyanhnguyen.petworld.backend.mapper.UserMapper;
 import com.duyanhnguyen.petworld.backend.repository.FriendshipRepository;
 import com.duyanhnguyen.petworld.backend.repository.UserRepository;
 import com.duyanhnguyen.petworld.backend.service.FriendshipService;
@@ -21,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -31,17 +36,24 @@ public class FriendshipServiceImpl implements FriendshipService {
     UserRepository userRepository;
     FriendshipMapper friendshipMapper;
     NotificationService notificationService;
+    UserMapper userMapper;
 
     @Override
-    public Page<FriendshipResponse> getFriendshipRequests(Long currentUserId, Pageable pageable) {
+    public Page<FriendshipRequestResponse> getFriendshipRequests(Long currentUserId, Pageable pageable) {
         Page<FriendshipEntity> friendshipRequestsPage = friendshipRepository
                 .findByRecipientIdAndAcceptedAtIsNullOrderBySentAtDesc(currentUserId, pageable);
         return friendshipRequestsPage.map(friendshipMapper::toResponse);
     }
 
+    @Override
+    public Page<UserResponse> getFriendsList(Long currentUserId, Pageable pageable) {
+        Page<UserEntity> friendshipsPage = friendshipRepository.findFriendsOfUser(currentUserId, pageable);
+        return friendshipsPage.map(userMapper::toResponse);
+    }
+
     @Transactional
     @Override
-    public FriendshipResponse sendFriendRequest(Long currentUserId, Long recipientId) {
+    public FriendshipRequestResponse sendFriendRequest(Long currentUserId, Long recipientId) {
         if (currentUserId.equals(recipientId))
             throw new AppException(ErrorCode.INVALID_FRIENDSHIP_REQUEST);
 
@@ -76,7 +88,7 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Transactional
     @Override
-    public FriendshipResponse acceptFriendRequest(Long currentUserId, Long friendshipId) {
+    public FriendshipRequestResponse acceptFriendRequest(Long currentUserId, Long friendshipId) {
         FriendshipEntity friendshipEntity = friendshipRepository.findById(friendshipId)
                 .orElseThrow(() -> new AppException(ErrorCode.FRIENDSHIP_NOT_FOUND));
 
@@ -139,6 +151,32 @@ public class FriendshipServiceImpl implements FriendshipService {
             throw new AppException(ErrorCode.NOT_FRIENDS);
 
         friendshipRepository.delete(friendshipEntity);
+    }
+
+    @Override
+    public FriendshipStatusResponse getFriendshipStatus(Long currentUserId, Long otherUserId) {
+        if (currentUserId.equals(otherUserId))
+            throw new AppException(ErrorCode.INVALID_FRIENDSHIP_REQUEST);
+        if (!userRepository.existsById(otherUserId))
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
+
+        FriendshipStatusResponse friendshipStatusResponse = new FriendshipStatusResponse();
+        FriendshipEntity friendshipEntity = friendshipRepository.findBetweenTwoUsers(currentUserId, otherUserId)
+                .orElse(null);
+
+        if (friendshipEntity == null)
+            friendshipStatusResponse.setStatus(FriendshipStatus.NONE);
+        else {
+            friendshipStatusResponse.setId(friendshipEntity.getId());
+            if (friendshipEntity.getAcceptedAt() != null)
+                friendshipStatusResponse.setStatus(FriendshipStatus.FRIENDS);
+            else if (friendshipEntity.getSender().getId().equals(currentUserId))
+                friendshipStatusResponse.setStatus(FriendshipStatus.PENDING_SENT);
+            else
+                friendshipStatusResponse.setStatus(FriendshipStatus.PENDING_RECEIVED);
+        }
+
+        return friendshipStatusResponse;
     }
 
 }

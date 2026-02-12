@@ -1,6 +1,6 @@
 package com.duyanhnguyen.petworld.backend.mapper;
 
-import com.duyanhnguyen.petworld.backend.dto.response.FriendshipResponse;
+import com.duyanhnguyen.petworld.backend.dto.response.FriendshipRequestResponse;
 import com.duyanhnguyen.petworld.backend.entity.FriendshipEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -12,6 +12,6 @@ public interface FriendshipMapper {
     @Mapping(source = "sender.id", target = "senderId")
     @Mapping(source = "sender.username", target = "senderUsername")
     @Mapping(source = "sender.avatar", target = "senderAvatar")
-    FriendshipResponse toResponse(FriendshipEntity entity);
+    FriendshipRequestResponse toResponse(FriendshipEntity entity);
 
 }

@@ -7,13 +7,37 @@ export const postApi = {
         })
     },
 
-    getGroupPosts(page = 0, size = 10) {
+    getGroupsPosts(page = 0, size = 10) {
         return apiClient.get('/posts/groups', {
+            params: { page, size }
+        })
+    },
+
+    getFriendsPostsForNewsFeed(page = 0, size = 10) {
+        return apiClient.get('/posts/friends', {
+            params: { page, size }
+        })
+    },
+
+    getUserPosts(userId, page = 0, size = 10) {
+        return apiClient.get(`/posts/users/${userId}`, {
             params: { page, size }
         })
     },
 
     getPostById(postId) {
         return apiClient.get(`/posts/${postId}`)
+    },
+
+    createPost(postData) {
+        return apiClient.post('/posts', postData)
+    },
+
+    updatePost(postId, postData) {
+        return apiClient.put(`/posts/${postId}`, postData)
+    },
+
+    deletePost(postId) {
+        return apiClient.delete(`/posts/${postId}`)
     }
 }
