@@ -64,6 +64,12 @@ const routes = [
         name: 'CreatePost',
         component: () => import('@/views/CreateEditPostView.vue'),
         meta: { requiresAuth: true }
+    },
+    {
+        path: '/friend-requests',
+        name: 'FriendRequests',
+        component: () => import('@/views/FriendRequestsView.vue'),
+        meta: { requiresAuth: true }
     }
 ]
 

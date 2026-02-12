@@ -42,24 +42,28 @@
                 <button 
                   @click="handleAcceptRequest"
                   class="btn-friendship btn-accept"
-                  :disabled="true"
-                  title="API coming soon"
+                  :disabled="isActionLoading"
                 >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                  Accept Request
+                  <LoadingSpinner v-if="isActionLoading" size="sm" />
+                  <template v-else>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Accept Request
+                  </template>
                 </button>
                 <button 
-                  @click="handleDeclineRequestButton"
+                  @click="handleRejectRequestButton"
                   class="btn-friendship btn-cancel"
-                  :disabled="true"
-                  title="API coming soon"
+                  :disabled="isActionLoading"
                 >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                  Decline
+                  <LoadingSpinner v-if="isActionLoading" size="sm" />
+                  <template v-else>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Reject
+                  </template>
                 </button>
               </template>
 
@@ -67,15 +71,14 @@
                 v-else-if="friendshipStatus" 
                 @click="handleFriendshipAction"
                 :class="['btn-friendship', friendshipButtonClass]"
-                :disabled="true"
-                title="API coming soon"
+                :disabled="isActionLoading"
               >
                 <LoadingSpinner v-if="isActionLoading" size="sm" />
                 <template v-else>
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="friendshipIconPath"/>
                   </svg>
-                  {{ friendshipButtonText }} (Coming Soon)
+                  {{ friendshipButtonText }}
                 </template>
               </button>
             </div>
@@ -165,6 +168,43 @@
     </main>
 
     <AppFooter />
+
+    <Transition name="modal">
+      <div v-if="showConfirmModal" class="modal-overlay" @click="showConfirmModal = false">
+        <div class="modal-dialog" @click.stop>
+          <div class="modal-header">
+            <h3 class="modal-title">Confirm Action</h3>
+            <button @click="showConfirmModal = false" class="modal-close" :disabled="isActionLoading">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="modal-body">
+            <p class="modal-text">{{ confirmMessage }}</p>
+          </div>
+          
+          <div class="modal-footer">
+            <button 
+              @click="showConfirmModal = false" 
+              class="btn-secondary"
+              :disabled="isActionLoading"
+            >
+              Cancel
+            </button>
+            <button 
+              @click="confirmFriendshipAction" 
+              class="btn-primary"
+              :disabled="isActionLoading"
+            >
+              <LoadingSpinner v-if="isActionLoading" size="sm" class="mr-2" />
+              {{ confirmButtonText }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -178,6 +218,7 @@ import LeftSidebar from '@/components/layout/LeftSidebar.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import PostItem from '@/components/ui/PostItem.vue'
 import { userApi } from '@/api/user'
+import { friendshipApi } from '@/api/friendship'
 import { postApi } from '@/api/post'
 import { useAuth } from '@/composables/useAuth'
 
@@ -356,17 +397,142 @@ const goToProfile = (userId) => {
   router.push({ name: 'Profile', params: { userId } })
 }
 
-// TODO: Implement when friendship APIs are ready
+const showConfirmModal = ref(false)
+const confirmAction = ref(null)
+const confirmMessage = ref('')
+const confirmButtonText = ref('')
+
 const handleFriendshipAction = () => {
-  alert('Friendship actions API coming soon!')
+  if (!friendshipStatus.value)
+    return
+
+  const status = friendshipStatus.value.status
+  
+  switch (status) {
+    case 'NONE':
+      confirmAction.value = sendFriendRequest
+      confirmMessage.value = `Send friend request to ${profile.value.username}?`
+      confirmButtonText.value = 'Send Request'
+      break
+    case 'PENDING_SENT':
+      confirmAction.value = cancelFriendRequest
+      confirmMessage.value = `Cancel friend request to ${profile.value.username}?`
+      confirmButtonText.value = 'Cancel Request'
+      break
+    case 'FRIENDS':
+      confirmAction.value = removeFriend
+      confirmMessage.value = `Remove ${profile.value.username} from friends?`
+      confirmButtonText.value = 'Remove Friend'
+      break
+    default:
+      return
+  }
+  
+  showConfirmModal.value = true
 }
 
 const handleAcceptRequest = () => {
-  alert('Accept request API coming soon!')
+  confirmAction.value = acceptFriendRequest
+  confirmMessage.value = `Accept friend request from ${profile.value.username}?`
+  confirmButtonText.value = 'Accept'
+  showConfirmModal.value = true
 }
 
-const handleDeclineRequestButton = () => {
-  alert('Decline request API coming soon!')
+const handleRejectRequestButton = () => {
+  confirmAction.value = rejectFriendRequest
+  confirmMessage.value = `Reject friend request from ${profile.value.username}?`
+  confirmButtonText.value = 'Reject'
+  showConfirmModal.value = true
+}
+
+const confirmFriendshipAction = async () => {
+  if (!confirmAction.value)
+    return
+  
+  isActionLoading.value = true
+  try {
+    await confirmAction.value()
+    showConfirmModal.value = false
+    confirmAction.value = null
+  } catch (error) {
+    console.error('Friendship action failed:', error)
+    alert('Action failed. Please try again.')
+  } finally {
+    isActionLoading.value = false
+  }
+}
+
+const sendFriendRequest = async () => {
+  const userId = route.params.userId
+  const response = await friendshipApi.sendFriendRequest(userId)
+  if (response.data.status === 200) {
+    profile.value = null
+    friendshipStatus.value = null
+    userPosts.value = []
+    currentPostPage.value = 0
+    hasMorePosts.value = true
+    await loadProfile()
+  }
+}
+
+const cancelFriendRequest = async () => {
+  if (!friendshipStatus.value?.id)
+    return
+  
+  const response = await friendshipApi.cancelFriendRequest(friendshipStatus.value.id)
+  if (response.data.status === 200) {
+    profile.value = null
+    friendshipStatus.value = null
+    userPosts.value = []
+    currentPostPage.value = 0
+    hasMorePosts.value = true
+    await loadProfile()
+  }
+}
+
+const acceptFriendRequest = async () => {
+  if (!friendshipStatus.value?.id)
+    return
+  
+  const response = await friendshipApi.acceptFriendRequest(friendshipStatus.value.id)
+  if (response.data.status === 200) {
+    profile.value = null
+    friendshipStatus.value = null
+    userPosts.value = []
+    currentPostPage.value = 0
+    hasMorePosts.value = true
+    await loadProfile()
+  }
+}
+
+const rejectFriendRequest = async () => {
+  if (!friendshipStatus.value?.id)
+    return
+  
+  const response = await friendshipApi.rejectFriendRequest(friendshipStatus.value.id)
+  if (response.data.status === 200) {
+    profile.value = null
+    friendshipStatus.value = null
+    userPosts.value = []
+    currentPostPage.value = 0
+    hasMorePosts.value = true
+    await loadProfile()
+  }
+}
+
+const removeFriend = async () => {
+  if (!friendshipStatus.value?.id)
+    return
+  
+  const response = await friendshipApi.removeFriend(friendshipStatus.value.id)
+  if (response.data.status === 200) {
+    profile.value = null
+    friendshipStatus.value = null
+    userPosts.value = []
+    currentPostPage.value = 0
+    hasMorePosts.value = true
+    await loadProfile()
+  }
 }
 
 const showCreatePost = () => router.push({ name: 'CreatePost' })
@@ -504,7 +670,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 }
 
 .btn-accept {
-  @apply bg-green-600 text-white hover:bg-green-700;
+  @apply bg-primary-600 text-white hover:bg-primary-700;
 }
 
 .btn-remove {
@@ -595,31 +761,76 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   @apply text-center py-16 text-gray-500 text-lg;
 }
 
+/* Modal Styles */
 .modal-overlay {
-  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4;
 }
 
-.modal-content {
-  @apply bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4;
+.modal-dialog {
+  @apply bg-white rounded-2xl shadow-2xl w-full max-w-md;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  @apply flex items-center justify-between p-6 border-b border-gray-200;
 }
 
 .modal-title {
-  @apply text-xl font-bold text-gray-900 mb-2;
+  @apply text-xl font-bold text-gray-900;
 }
 
-.modal-message {
-  @apply text-gray-700 mb-6;
+.modal-close {
+  @apply text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100;
 }
 
-.modal-actions {
-  @apply flex space-x-3 justify-end;
+.modal-body {
+  @apply p-6;
 }
 
-.btn-cancel {
-  @apply px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors;
+.modal-text {
+  @apply text-gray-700 text-base leading-relaxed;
 }
 
-.btn-confirm {
-  @apply px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 flex items-center space-x-2;
+.modal-footer {
+  @apply flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl;
+}
+
+.btn-secondary {
+  @apply px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-primary {
+  @apply px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[120px];
+}
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-active .modal-dialog,
+.modal-leave-active .modal-dialog {
+  transition: transform 0.3s ease;
+}
+
+.modal-enter-from .modal-dialog,
+.modal-leave-to .modal-dialog {
+  transform: translateY(-20px);
 }
 </style>

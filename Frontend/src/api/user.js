@@ -18,11 +18,4 @@ export const userApi = {
     getFriendshipStatus(userId) {
         return apiClient.get(`/users/${userId}/friendship-status`)
     }
-
-    // TODO: Add friendship action APIs when backend is ready
-    // sendFriendRequest(userId)
-    // cancelFriendRequest(userId)
-    // acceptFriendRequest(userId)
-    // declineFriendRequest(userId)
-    // removeFriend(userId)
 }

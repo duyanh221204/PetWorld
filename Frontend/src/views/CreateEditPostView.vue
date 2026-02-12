@@ -118,25 +118,48 @@
       </div>
     </main>
 
-    <div v-if="showConfirmModal" class="modal-overlay" @click="isSubmitting ? null : (showConfirmModal = false)">
-      <div class="modal-content" @click.stop>
-        <h2 class="modal-title">{{ isSubmitting ? 'Uploading...' : `Confirm ${isEditMode ? 'Update' : 'Create'}` }}</h2>
-        <div v-if="isSubmitting" class="uploading-container">
-          <LoadingSpinner size="lg" />
-        </div>
-        <p v-else class="modal-message">
-          Are you sure you want to {{ isEditMode ? 'update' : 'create' }} this post?
-        </p>
-        <div v-if="!isSubmitting" class="modal-actions">
-          <button @click="showConfirmModal = false" class="btn-modal-cancel">
-            Cancel
-          </button>
-          <button @click="confirmSubmit" class="btn-modal-confirm">
-            Confirm
-          </button>
+    <Transition name="modal">
+      <div v-if="showConfirmModal" class="modal-overlay" @click="isSubmitting ? null : (showConfirmModal = false)">
+        <div class="modal-dialog" @click.stop>
+          <div class="modal-header">
+            <h3 class="modal-title">{{ isSubmitting ? 'Uploading...' : `Confirm ${isEditMode ? 'Update' : 'Create'}` }}</h3>
+            <button 
+              v-if="!isSubmitting"
+              @click="showConfirmModal = false" 
+              class="modal-close"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="modal-body">
+            <div v-if="isSubmitting" class="uploading-container">
+              <LoadingSpinner size="lg" />
+            </div>
+            <p v-else class="modal-text">
+              Are you sure you want to {{ isEditMode ? 'update' : 'create' }} this post?
+            </p>
+          </div>
+          
+          <div v-if="!isSubmitting" class="modal-footer">
+            <button 
+              @click="showConfirmModal = false" 
+              class="btn-secondary"
+            >
+              Cancel
+            </button>
+            <button 
+              @click="confirmSubmit" 
+              class="btn-primary"
+            >
+              Confirm
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
 
     <AppFooter />
   </div>
@@ -265,7 +288,6 @@ const confirmSubmit = async () => {
           }
         } catch (uploadError) {
           console.error('Failed to upload file:', uploadError)
-          throw uploadError
         }
       } else if (item.mediaUrl) {
         uploadedMediaItems.push({
@@ -473,35 +495,79 @@ onMounted(() => {
 }
 
 .modal-overlay {
-  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4;
 }
 
-.modal-content {
-  @apply bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4;
+.modal-dialog {
+  @apply bg-white rounded-2xl shadow-2xl w-full max-w-md;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  @apply flex items-center justify-between p-6 border-b border-gray-200;
 }
 
 .modal-title {
-  @apply text-xl font-bold text-gray-900 mb-2;
+  @apply text-xl font-bold text-gray-900;
+}
+
+.modal-close {
+  @apply text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100;
+}
+
+.modal-body {
+  @apply p-6;
 }
 
 .uploading-container {
   @apply flex items-center justify-center py-8;
 }
 
-.modal-message {
-  @apply text-gray-700 mb-6;
+.modal-text {
+  @apply text-gray-700 text-base leading-relaxed;
 }
 
-.modal-actions {
-  @apply flex space-x-3 justify-end;
+.modal-footer {
+  @apply flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl;
 }
 
-.btn-modal-cancel {
-  @apply px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors;
+.btn-secondary {
+  @apply px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
-.btn-modal-confirm {
-  @apply flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 min-w-[100px];
+.btn-primary {
+  @apply px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[120px];
+}
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-active .modal-dialog,
+.modal-leave-active .modal-dialog {
+  transition: transform 0.3s ease;
+}
+
+.modal-enter-from .modal-dialog,
+.modal-leave-to .modal-dialog {
+  transform: translateY(-20px);
 }
 
 .hidden {
