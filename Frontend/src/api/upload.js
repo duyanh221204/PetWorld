@@ -1,4 +1,4 @@
-import apiClient from "@/api/axios.js";
+import apiClient from './axios'
 
 export const uploadApi = {
     async uploadFile(file) {
