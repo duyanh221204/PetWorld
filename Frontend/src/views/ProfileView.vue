@@ -9,7 +9,6 @@
         <LoadingSpinner v-if="isLoading && !profile" size="lg" class="my-8" />
 
         <template v-else-if="profile">
-          <!-- Profile Header -->
           <div class="profile-header">
             <img 
               :src="profile.avatar || defaultAvatar" 
@@ -30,8 +29,7 @@
               </div>
               <p v-if="profile.description" class="profile-description">{{ profile.description }}</p>
             </div>
-            
-            <!-- Action Button -->
+
             <div class="profile-actions">
               <button v-if="isOwnProfile" @click="showCreatePost" class="btn-create-post">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -39,8 +37,7 @@
                 </svg>
                 Create Post
               </button>
-              
-              <!-- For REQUEST_RECEIVED, show both Accept and Decline buttons -->
+
               <template v-else-if="friendshipStatus && friendshipStatus.status === 'PENDING_RECEIVED'">
                 <button 
                   @click="handleAcceptRequest"
@@ -65,8 +62,7 @@
                   Decline
                 </button>
               </template>
-              
-              <!-- For other statuses, show single button -->
+
               <button 
                 v-else-if="friendshipStatus" 
                 @click="handleFriendshipAction"
@@ -85,7 +81,6 @@
             </div>
           </div>
 
-          <!-- Friends List Modal -->
           <div v-if="showFriendsList" class="friends-modal-overlay" @click="toggleFriendsList">
             <div class="friends-modal" @click.stop>
               <div class="friends-modal-header">
@@ -131,7 +126,6 @@
             </div>
           </div>
 
-          <!-- Posts Section -->
           <div ref="postsSection" class="posts-section">
             <h2 class="section-title">Posts</h2>
             
@@ -211,12 +205,11 @@ const showFriendsList = ref(false)
 
 const postsSection = ref(null)
 
-const isOwnProfile = computed(() => {
-  return user.value?.id === profile.value?.id
-})
+const isOwnProfile = computed(() => user.value?.id === profile.value?.id)
 
 const friendshipButtonText = computed(() => {
-  if (!friendshipStatus.value) return ''
+  if (!friendshipStatus.value)
+    return ''
   
   const status = friendshipStatus.value.status
   switch (status) {
@@ -234,7 +227,8 @@ const friendshipButtonText = computed(() => {
 })
 
 const friendshipButtonClass = computed(() => {
-  if (!friendshipStatus.value) return ''
+  if (!friendshipStatus.value)
+    return ''
   
   const status = friendshipStatus.value.status
   switch (status) {
@@ -252,7 +246,8 @@ const friendshipButtonClass = computed(() => {
 })
 
 const friendshipIconPath = computed(() => {
-  if (!friendshipStatus.value) return ''
+  if (!friendshipStatus.value)
+    return ''
   
   const status = friendshipStatus.value.status
   switch (status) {
@@ -271,25 +266,23 @@ const friendshipIconPath = computed(() => {
 
 const loadProfile = async () => {
   const userId = route.params.userId
-  if (!userId) return
+  if (!userId)
+    return
 
   isLoading.value = true
   try {
     const response = await userApi.getUserProfile(userId)
-    if (response.data.status === 200) {
+    if (response.data.status === 200)
       profile.value = response.data.data
-    }
 
-    // Load friendship status if not own profile
+    // load friendship status nếu không phải là profile của chính mình
     if (!isOwnProfile.value) {
       const statusResponse = await userApi.getFriendshipStatus(userId)
-      if (statusResponse.data.status === 200) {
+      if (statusResponse.data.status === 200)
         friendshipStatus.value = statusResponse.data.data
-      }
     }
 
-    // Load posts
-    loadPosts()
+    await loadPosts()
   } catch (error) {
     console.error('Failed to load profile:', error)
   } finally {
@@ -299,7 +292,8 @@ const loadProfile = async () => {
 
 const loadPosts = async () => {
   const userId = route.params.userId
-  if (!userId || isLoadingPosts.value || !hasMorePosts.value) return
+  if (!userId || isLoadingPosts.value || !hasMorePosts.value)
+    return
 
   isLoadingPosts.value = true
   try {
@@ -308,7 +302,7 @@ const loadPosts = async () => {
       const newPosts = response.data.data.content
       userPosts.value.push(...newPosts)
       hasMorePosts.value = !response.data.data.last
-      currentPostPage.value++
+      ++currentPostPage.value
     }
   } catch (error) {
     console.error('Failed to load posts:', error)
@@ -319,7 +313,8 @@ const loadPosts = async () => {
 
 const loadFriends = async (reset = false) => {
   const userId = route.params.userId
-  if (!userId) return
+  if (!userId)
+    return
 
   if (reset) {
     friends.value = []
@@ -327,7 +322,8 @@ const loadFriends = async (reset = false) => {
     hasMoreFriends.value = true
   }
 
-  if (isLoadingFriends.value || !hasMoreFriends.value) return
+  if (isLoadingFriends.value || !hasMoreFriends.value)
+    return
 
   isLoadingFriends.value = true
   try {
@@ -336,7 +332,7 @@ const loadFriends = async (reset = false) => {
       const newFriends = response.data.data.content
       friends.value.push(...newFriends)
       hasMoreFriends.value = !response.data.data.last
-      currentFriendPage.value++
+      ++currentFriendPage.value
     }
   } catch (error) {
     console.error('Failed to load friends:', error)
@@ -345,20 +341,15 @@ const loadFriends = async (reset = false) => {
   }
 }
 
-const loadMoreFriends = () => {
-  loadFriends(false)
-}
+const loadMoreFriends = () => loadFriends(false)
 
 const toggleFriendsList = () => {
   showFriendsList.value = !showFriendsList.value
-  if (showFriendsList.value && friends.value.length === 0) {
+  if (showFriendsList.value && friends.value.length === 0)
     loadFriends(true)
-  }
 }
 
-const scrollToPosts = () => {
-  postsSection.value?.scrollIntoView({ behavior: 'smooth' })
-}
+const scrollToPosts = () => postsSection.value?.scrollIntoView({ behavior: 'smooth' })
 
 const goToProfile = (userId) => {
   showFriendsList.value = false
@@ -378,10 +369,7 @@ const handleDeclineRequestButton = () => {
   alert('Decline request API coming soon!')
 }
 
-const showCreatePost = () => {
-  // TODO: Implement create post modal
-  alert('Create post feature coming soon!')
-}
+const showCreatePost = () => router.push({ name: 'CreatePost' })
 
 const handleRefreshPost = async (postId) => {
   try {
@@ -389,9 +377,8 @@ const handleRefreshPost = async (postId) => {
     if (response.data.status === 200) {
       const updatedPost = response.data.data
       const index = userPosts.value.findIndex(p => p.id === postId)
-      if (index !== -1) {
+      if (index !== -1)
         userPosts.value[index] = updatedPost
-      }
     }
   } catch (error) {
     console.error('Failed to refresh post:', error)
@@ -417,15 +404,13 @@ const handleScroll = () => {
   const scrollHeight = document.documentElement.scrollHeight
   const clientHeight = document.documentElement.clientHeight
 
-  if (scrollTop + clientHeight >= scrollHeight - 500) {
+  if (scrollTop + clientHeight >= scrollHeight - 500)
     loadPosts()
-  }
 }
 
-// Watch for route changes
+// theo dõi thay đổi userId trong route params để load lại profile
 watch(() => route.params.userId, (newUserId, oldUserId) => {
   if (newUserId && newUserId !== oldUserId) {
-    // Reset state
     profile.value = null
     friendshipStatus.value = null
     userPosts.value = []
@@ -435,8 +420,8 @@ watch(() => route.params.userId, (newUserId, oldUserId) => {
     currentFriendPage.value = 0
     hasMoreFriends.value = true
     showFriendsList.value = false
-    
-    // Load new profile
+
+    // load lại profile mới
     loadProfile()
   }
 })
@@ -445,10 +430,7 @@ onMounted(() => {
   loadProfile()
   window.addEventListener('scroll', handleScroll)
 })
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
-})
+onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 </script>
 
 <style scoped>

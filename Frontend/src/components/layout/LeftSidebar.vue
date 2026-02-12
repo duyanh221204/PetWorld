@@ -25,9 +25,8 @@ const { user } = useAuth()
 const currentUser = computed(() => user.value)
 
 const goToMyProfile = () => {
-  if (currentUser.value?.id) {
+  if (currentUser.value?.id)
     router.push({ name: 'Profile', params: { userId: currentUser.value.id } })
-  }
 }
 </script>
 

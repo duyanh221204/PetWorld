@@ -94,26 +94,25 @@ const switchTab = (tab) => {
   posts.value = []
   currentPage.value = 0
   hasMore.value = true
-  
-  // Update route
+
   router.push({ name: `NewsFeed${tab.charAt(0).toUpperCase() + tab.slice(1)}` })
-  
+
   loadPosts()
 }
 
 const loadPosts = async () => {
-  if (isLoading.value || !hasMore.value) return
+  if (isLoading.value || !hasMore.value)
+    return
 
   isLoading.value = true
   try {
     let response
-    if (currentTab.value === 'home') {
+    if (currentTab.value === 'home')
       response = await postApi.getPostsForNewsFeed(currentPage.value, 10)
-    } else if (currentTab.value === 'group') {
+    else if (currentTab.value === 'group')
       response = await postApi.getGroupsPosts(currentPage.value, 10)
-    } else if (currentTab.value === 'friends') {
+    else if (currentTab.value === 'friends')
       response = await postApi.getFriendsPostsForNewsFeed(currentPage.value, 10)
-    }
 
     if (response.data.status === 200) {
       const newPosts = response.data.data.content
@@ -134,9 +133,8 @@ const handleRefreshPost = async (postId) => {
     if (response.data.status === 200) {
       const updatedPost = response.data.data
       const index = posts.value.findIndex(p => p.id === postId)
-      if (index !== -1) {
+      if (index !== -1)
         posts.value[index] = updatedPost
-      }
     }
   } catch (error) {
     console.error('Failed to refresh post:', error)
@@ -151,10 +149,10 @@ const handleToggleReaction = async (postId) => {
   const post = posts.value.find(p => p.id === postId)
   if (post) {
     if (post.isReactedByCurrentUser) {
-      post.reactionCount--
+      --post.reactionCount
       post.isReactedByCurrentUser = false
     } else {
-      post.reactionCount++
+      ++post.reactionCount
       post.isReactedByCurrentUser = true
     }
   }
@@ -165,29 +163,24 @@ const handleScroll = () => {
   const scrollHeight = document.documentElement.scrollHeight
   const clientHeight = document.documentElement.clientHeight
 
-  if (scrollTop + clientHeight >= scrollHeight - 500) {
+  if (scrollTop + clientHeight >= scrollHeight - 500)
     loadPosts()
-  }
 }
 
 onMounted(() => {
-  // Determine current tab from route
   const path = route.path
-  if (path.includes('/group')) {
+  if (path.includes('/group'))
     currentTab.value = 'group'
-  } else if (path.includes('/friends')) {
+  else if (path.includes('/friends'))
     currentTab.value = 'friends'
-  } else {
+  else
     currentTab.value = 'home'
-  }
 
   loadPosts()
   window.addEventListener('scroll', handleScroll)
 })
 
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
-})
+onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 </script>
 
 <style scoped>

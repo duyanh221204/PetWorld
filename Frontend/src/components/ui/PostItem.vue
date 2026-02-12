@@ -13,6 +13,20 @@
           </svg>
           Refresh
         </button>
+        <template v-if="isOwnPost">
+          <button @click="handleEdit" class="menu-item">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+            Edit
+          </button>
+          <button @click="handleDeleteClick" class="menu-item text-red-600 hover:bg-red-50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+            Delete
+          </button>
+        </template>
       </div>
     </div>
 
@@ -26,7 +40,6 @@
         <div class="user-details">
           <div class="user-name-group">
             <span class="username">{{ post.username }}</span>
-            <!-- Visibility icon (skip for GROUP_ONLY) -->
             <template v-if="post.visibility && post.visibility !== 'GROUP_ONLY'">
               <span class="visibility-separator">·</span>
               <svg v-if="post.visibility === 'PUBLIC'" class="visibility-icon" fill="currentColor" viewBox="0 0 20 20" title="Public">
@@ -123,6 +136,24 @@
         Updated: {{ formatDate(post.updatedAt) }}
       </span>
     </div>
+
+    <div v-if="showDeleteModal" class="modal-overlay" @click="showDeleteModal = false">
+      <div class="modal-content" @click.stop>
+        <h2 class="modal-title">Confirm Delete</h2>
+        <p class="modal-message">
+          Are you sure you want to delete this post? This action cannot be undone.
+        </p>
+        <div class="modal-actions">
+          <button @click="showDeleteModal = false" class="btn-modal-cancel" :disabled="isDeleting">
+            Cancel
+          </button>
+          <button @click="confirmDelete" class="btn-modal-confirm" :disabled="isDeleting">
+            <LoadingSpinner v-if="isDeleting" size="sm" />
+            <span v-else>Delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -130,6 +161,9 @@
 import defaultAvatar from '@/assets/images/default-avatar.png';
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
+import { postApi } from '@/api/post'
+import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 
 const props = defineProps({
   post: {
@@ -138,12 +172,15 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['refresh', 'toggleReaction'])
+const emit = defineEmits(['refresh', 'toggleReaction', 'delete'])
 
 const router = useRouter()
+const { user } = useAuth()
 
 const showMenu = ref(false)
 const currentMediaIndex = ref(0)
+const showDeleteModal = ref(false)
+const isDeleting = ref(false)
 
 const currentMedia = computed(() => {
   if (props.post.postMediaResources && props.post.postMediaResources.length > 0)
@@ -151,11 +188,43 @@ const currentMedia = computed(() => {
   return null
 })
 
+const isOwnPost = computed(() => user.value?.id === props.post.userId)
+
 const toggleMenu = () => showMenu.value = !showMenu.value
 
 const handleRefresh = () => {
   showMenu.value = false
   emit('refresh', props.post.id)
+}
+
+const handleEdit = () => {
+  showMenu.value = false
+  router.push({
+    name: 'CreatePost',
+    query: { editPostId: props.post.id }
+  })
+}
+
+const handleDeleteClick = () => {
+  showMenu.value = false
+  showDeleteModal.value = true
+}
+
+const confirmDelete = async () => {
+  isDeleting.value = true
+  try {
+    const response = await postApi.deletePost(props.post.id)
+    if (response.data.status === 200) {
+      showDeleteModal.value = false
+      emit('delete', props.post.id)
+      window.location.reload()
+    }
+  } catch (error) {
+    alert('Failed to delete post. Please try again.')
+    throw error
+  } finally {
+    isDeleting.value = false
+  }
 }
 
 const toggleReaction = () => emit('toggleReaction', props.post.id)
@@ -171,9 +240,8 @@ const nextMedia = () => {
 }
 
 const goToProfile = () => {
-  if (props.post.userId) {
+  if (props.post.userId)
     router.push({ name: 'Profile', params: { userId: props.post.userId } })
-  }
 }
 
 const goToGroup = () => {
@@ -333,5 +401,33 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 
 .timestamp {
   @apply text-gray-400;
+}
+
+.modal-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+}
+
+.modal-content {
+  @apply bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4;
+}
+
+.modal-title {
+  @apply text-xl font-bold text-gray-900 mb-2;
+}
+
+.modal-message {
+  @apply text-gray-700 mb-6;
+}
+
+.modal-actions {
+  @apply flex space-x-3 justify-end;
+}
+
+.btn-modal-cancel {
+  @apply px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors;
+}
+
+.btn-modal-confirm {
+  @apply flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 min-w-[100px];
 }
 </style>

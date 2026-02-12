@@ -27,5 +27,17 @@ export const postApi = {
 
     getPostById(postId) {
         return apiClient.get(`/posts/${postId}`)
+    },
+
+    createPost(postData) {
+        return apiClient.post('/posts', postData)
+    },
+
+    updatePost(postId, postData) {
+        return apiClient.put(`/posts/${postId}`, postData)
+    },
+
+    deletePost(postId) {
+        return apiClient.delete(`/posts/${postId}`)
     }
 }

@@ -229,7 +229,7 @@ public class PostServiceImpl implements PostService {
             );
         }
         postEntity.setUpdatedAt(Instant.now());
-        postEntity.getPostMediaResources().sort(Comparator.comparing(PostMediaResourceEntity::getId));
+        postEntity.getPostMediaResources().sort(Comparator.comparing(PostMediaResourceEntity::getDisplayOrder));
         applicationEventPublisher.publishEvent(new PostEvent(postId));
 
         PostResponse postResponse = postMapper.toResponse(postEntity);

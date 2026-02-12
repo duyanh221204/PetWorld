@@ -58,6 +58,12 @@ const routes = [
         name: 'Profile',
         component: () => import('@/views/ProfileView.vue'),
         meta: { requiresAuth: true }
+    },
+    {
+        path: '/post/create',
+        name: 'CreatePost',
+        component: () => import('@/views/CreateEditPostView.vue'),
+        meta: { requiresAuth: true }
     }
 ]
 
