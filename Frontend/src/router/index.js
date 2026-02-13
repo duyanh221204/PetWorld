@@ -70,6 +70,12 @@ const routes = [
         name: 'FriendRequests',
         component: () => import('@/views/FriendRequestsView.vue'),
         meta: { requiresAuth: true }
+    },
+    {
+        path: '/notifications',
+        name: 'Notifications',
+        component: () => import('@/views/NotificationsView.vue'),
+        meta: { requiresAuth: true }
     }
 ]
 

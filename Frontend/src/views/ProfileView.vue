@@ -165,6 +165,8 @@
           <p>Profile not found</p>
         </div>
       </div>
+
+      <RightSidebar />
     </main>
 
     <AppFooter />
@@ -215,6 +217,7 @@ import defaultAvatar from '@/assets/images/default-avatar.png'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import LeftSidebar from '@/components/layout/LeftSidebar.vue'
+import RightSidebar from '@/components/layout/RightSidebar.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import PostItem from '@/components/ui/PostItem.vue'
 import { userApi } from '@/api/user'
@@ -761,7 +764,6 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   @apply text-center py-16 text-gray-500 text-lg;
 }
 
-/* Modal Styles */
 .modal-overlay {
   @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4;
 }

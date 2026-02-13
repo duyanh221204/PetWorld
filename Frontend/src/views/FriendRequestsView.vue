@@ -76,6 +76,8 @@
           </div>
         </template>
       </div>
+
+      <RightSidebar />
     </main>
 
     <Transition name="modal">
@@ -167,6 +169,7 @@ import defaultAvatar from '@/assets/images/default-avatar.png'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import LeftSidebar from '@/components/layout/LeftSidebar.vue'
+import RightSidebar from '@/components/layout/RightSidebar.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import { friendshipApi } from '@/api/friendship'
 

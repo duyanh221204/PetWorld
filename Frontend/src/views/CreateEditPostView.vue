@@ -116,6 +116,8 @@
           </form>
         </div>
       </div>
+
+      <RightSidebar />
     </main>
 
     <Transition name="modal">
@@ -172,6 +174,7 @@ import draggable from 'vuedraggable'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import LeftSidebar from '@/components/layout/LeftSidebar.vue'
+import RightSidebar from '@/components/layout/RightSidebar.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import { postApi } from '@/api/post'
 import { uploadApi } from '@/api/upload'

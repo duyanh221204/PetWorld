@@ -4,7 +4,7 @@ import { authApi } from '@/api/auth'
 const accessToken = ref(null)
 const user = ref(null)
 
-export function useAuth() {
+export const useAuth = () => {
     const isAuthenticated = computed(() => !!accessToken.value && !!user.value)
 
     const login = async (credentials) => {

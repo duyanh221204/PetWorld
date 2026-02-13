@@ -32,6 +32,7 @@
             </router-link>
           </template>
           <template v-else>
+            <NotificationDropdown />
             <button @click="handleLogout" class="logout-btn">
               Logout
             </button>
@@ -46,6 +47,7 @@
 import { ref } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useRouter } from 'vue-router'
+import NotificationDropdown from '@/components/ui/NotificationDropdown.vue'
 
 const auth = useAuth()
 const router = useRouter()
