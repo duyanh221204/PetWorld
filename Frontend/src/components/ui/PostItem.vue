@@ -131,9 +131,9 @@
     </div>
 
     <div class="post-timestamps">
-      <span class="timestamp">Created: {{ formatDate(post.createdAt) }}</span>
+      <span class="timestamp">Created: {{ formatTime(post.createdAt) }}</span>
       <span v-if="post.updatedAt && post.updatedAt !== post.createdAt" class="timestamp">
-        Updated: {{ formatDate(post.updatedAt) }}
+        Updated: {{ formatTime(post.updatedAt) }}
       </span>
     </div>
 
@@ -158,7 +158,7 @@
 </template>
 
 <script setup>
-import defaultAvatar from '@/assets/images/default-avatar.png';
+import defaultAvatar from '@/assets/images/default-avatar.png'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
@@ -249,8 +249,11 @@ const goToGroup = () => {
   console.log('Navigate to group:', props.post.groupId)
 }
 
-const formatDate = (dateString) => {
-  const date = new Date(dateString)
+const formatTime = (timestamp) => {
+  if (!timestamp)
+    return ''
+
+  const date = new Date(timestamp)
   const now = new Date()
   const diff = now - date
   const seconds = Math.floor(diff / 1000)
