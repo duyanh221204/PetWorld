@@ -66,11 +66,16 @@ const notificationMessage = computed(() => {
 const notificationLink = computed(() => {
   const type = props.notification.type
   const senderId = props.notification.senderId
+  const postId = props.notification.postId
 
   switch (type) {
     case 'FRIEND_REQUEST_RECEIVED':
     case 'FRIEND_REQUEST_ACCEPTED':
       return senderId ? `/profile/${senderId}` : '#'
+    case 'POST_REACTED':
+    case 'POST_COMMENTED':
+    case 'COMMENT_REPLIED':
+      return postId ? `/posts/${postId}` : '#'
     default:
       return '#'
   }

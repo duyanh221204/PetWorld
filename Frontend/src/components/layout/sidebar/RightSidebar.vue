@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import NotificationSidebar from '@/components/ui/NotificationSidebar.vue'
+import NotificationSidebar from '@/components/ui/notification/NotificationSidebar.vue'
 </script>
 
 <style scoped>

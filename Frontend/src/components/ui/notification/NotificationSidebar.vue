@@ -30,20 +30,14 @@
         />
       </div>
     </div>
-
-    <div v-if="latestNotifications.length > 0" class="sidebar-footer">
-      <router-link to="/notifications" class="view-all-link">
-        View all notifications
-      </router-link>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted } from 'vue'
-import { useNotifications } from '@/composables/useNotifications'
+import { useNotifications } from '@/composables/useNotifications.js'
 import NotificationItem from './NotificationItem.vue'
-import LoadingSpinner from './LoadingSpinner.vue'
+import LoadingSpinner from '../LoadingSpinner.vue'
 
 const { notifications, isLoading, error, fetchLatestNotifications, markAsRead } = useNotifications()
 
@@ -103,13 +97,5 @@ onMounted(async () => {
 
 .notifications-list {
   @apply divide-y divide-gray-100;
-}
-
-.sidebar-footer {
-  @apply border-t border-gray-200 bg-gray-50;
-}
-
-.view-all-link {
-  @apply block text-center py-3 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-gray-100 transition-colors;
 }
 </style>

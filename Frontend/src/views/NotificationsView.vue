@@ -93,8 +93,8 @@ import { ref, onMounted } from 'vue'
 import { useNotifications } from '@/composables/useNotifications'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
-import LeftSidebar from '@/components/layout/LeftSidebar.vue'
-import NotificationItem from '@/components/ui/NotificationItem.vue'
+import LeftSidebar from '@/components/layout/sidebar/LeftSidebar.vue'
+import NotificationItem from '@/components/ui/notification/NotificationItem.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 
 const { unreadCount, isLoading, error, fetchNotifications, markAllAsRead, markAsRead } = useNotifications()

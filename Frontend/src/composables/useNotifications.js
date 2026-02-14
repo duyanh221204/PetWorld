@@ -19,6 +19,7 @@ export const useNotifications = () => {
                 unreadCount.value = response.data.data
         } catch (err) {
             console.error('Error fetching unread count:', err)
+            throw err
         }
     }
 
@@ -32,6 +33,7 @@ export const useNotifications = () => {
         } catch (err) {
             error.value = 'Failed to load notifications'
             console.error('Error fetching notifications:', err)
+            throw err
         } finally {
             isLoading.value = false
         }
@@ -79,6 +81,7 @@ export const useNotifications = () => {
             }
         } catch (err) {
             console.error('Error marking notification as read:', err)
+            throw err
         }
     }
 
@@ -90,7 +93,7 @@ export const useNotifications = () => {
 
     let notificationSubscription = null
 
-    const subscribeToNotifications = () => {
+    const subscribeToNotifications = async () => {
         // Nếu đã subscribe rồi, không subscribe lại
         if (notificationSubscription) {
             console.log('Already subscribed to notifications')
@@ -99,7 +102,12 @@ export const useNotifications = () => {
 
         if (!ws.isConnected.value) {
             console.warn('WebSocket not connected, attempting to connect...')
-            ws.connect().then(() => doSubscribe()).catch(err => console.error('Failed to connect for notifications:', err))
+            try {
+                await ws.connect()
+                doSubscribe()
+            } catch (err) {
+                console.error('Failed to connect for notifications:', err)
+            }
         } else
             doSubscribe()
     }
@@ -124,19 +132,25 @@ export const useNotifications = () => {
 
             if (!ws.isConnected.value)
                 await ws.connect()
-            subscribeToNotifications()
+            await subscribeToNotifications()
         } catch (err) {
             console.error('Error initializing notifications:', err)
+            throw err
         }
     }
 
     // theo dõi trạng thái đăng nhập để khởi tạo hoặc xóa thông báo
     watch(
         () => auth.isAuthenticated.value,
-        (authenticated) => {
-            if (authenticated)
-                initialize().then(r => console.log('Notifications initialized:', r))
-            else {
+        async (authenticated) => {
+            if (authenticated) {
+                try {
+                    await initialize()
+                    console.log('Notifications initialized')
+                } catch (err) {
+                    console.error('Failed to initialize notifications:', err)
+                }
+            } else {
                 notifications.value = []
                 unreadCount.value = 0
                 notificationSubscription = null // reset subscription khi logout
@@ -148,12 +162,13 @@ export const useNotifications = () => {
     // theo dõi WebSocket reconnect để subscribe lại
     watch(
         () => ws.isConnected.value,
-        (connected) => {
+        async (connected) => {
             if (connected && auth.isAuthenticated.value && !notificationSubscription) {
                 console.log('WebSocket reconnected, resubscribing...')
-                subscribeToNotifications()
-            } else if (!connected)
+                await subscribeToNotifications()
+            } else if (!connected) {
                 notificationSubscription = null // reset khi disconnect
+            }
         }
     )
 

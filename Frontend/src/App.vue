@@ -12,16 +12,16 @@ import { useNotifications } from '@/composables/useNotifications'
 const auth = useAuth()
 const notifications = useNotifications()
 
-onMounted(() => {
+onMounted(async () => {
   if (auth.isAuthenticated.value)
-    notifications.initialize()
+    await notifications.initialize()
 })
 
 watch(
   () => auth.isAuthenticated.value,
-  (authenticated) => {
+  async (authenticated) => {
     if (authenticated)
-      notifications.initialize()
+      await notifications.initialize()
   }
 )
 </script>

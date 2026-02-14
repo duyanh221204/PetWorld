@@ -26,7 +26,7 @@
 import defaultAvatar from '@/assets/images/default-avatar.png'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuth } from '@/composables/useAuth'
+import { useAuth } from '@/composables/useAuth.js'
 
 const router = useRouter()
 const { user } = useAuth()

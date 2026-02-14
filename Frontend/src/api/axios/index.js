@@ -74,12 +74,16 @@ apiClient.interceptors.response.use(
 
             processQueue(null, newToken)
 
+            originalRequest.headers = originalRequest.headers || {}
             originalRequest.headers.Authorization = `Bearer ${newToken}`
             return apiClient(originalRequest)
         } catch (refreshError) {
             processQueue(refreshError, null)
 
-            await auth.logout()
+            try {
+                await auth.logout()
+            } catch (logoutError) {}
+
             if (router.currentRoute.value.name !== 'Login')
                 await router.replace({
                     name: 'Login',

@@ -77,11 +77,12 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
-import LeftSidebar from '@/components/layout/LeftSidebar.vue'
-import RightSidebar from '@/components/layout/RightSidebar.vue'
+import LeftSidebar from '@/components/layout/sidebar/LeftSidebar.vue'
+import RightSidebar from '@/components/layout/sidebar/RightSidebar.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import PostItem from '@/components/ui/PostItem.vue'
 import { postApi } from '@/api/post'
+import { reactionApi } from '@/api/reaction'
 
 const route = useRoute()
 const router = useRouter()
@@ -145,18 +146,32 @@ const handleRefreshPost = async (postId) => {
 }
 
 const handleToggleReaction = async (postId) => {
-  // TODO: Implement reaction API
-  console.log('Toggle reaction for post:', postId)
-  
-  // Optimistic update
   const post = posts.value.find(p => p.id === postId)
-  if (post) {
-    if (post.isReactedByCurrentUser) {
-      --post.reactionCount
-      post.isReactedByCurrentUser = false
-    } else {
+  if (!post)
+    return
+
+  const wasReacted = post.isReactedByCurrentUser
+  if (wasReacted) {
+    --post.reactionCount
+    post.isReactedByCurrentUser = false
+  } else {
+    ++post.reactionCount
+    post.isReactedByCurrentUser = true
+  }
+
+  try {
+    if (wasReacted)
+      await reactionApi.deleteReaction(postId)
+    else
+      await reactionApi.createReaction(postId)
+  } catch (error) {
+    console.error('Failed to toggle reaction:', error)
+    if (wasReacted) {
       ++post.reactionCount
       post.isReactedByCurrentUser = true
+    } else {
+      --post.reactionCount
+      post.isReactedByCurrentUser = false
     }
   }
 }
@@ -182,7 +197,6 @@ onMounted(() => {
   loadPosts()
   window.addEventListener('scroll', handleScroll)
 })
-
 onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 </script>
 

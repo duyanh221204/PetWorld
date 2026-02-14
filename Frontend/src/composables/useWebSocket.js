@@ -58,7 +58,7 @@ export const useWebSocket = () => {
         })
     }
 
-    const disconnect = () => {
+    const disconnect = async () => {
         if (stompClient) {
             // unsubscribe tất cả trước khi disconnect
             subscriptions.forEach(sub => {
@@ -67,10 +67,13 @@ export const useWebSocket = () => {
             })
             subscriptions = []
 
-            stompClient.deactivate().then(() => console.log('WebSocket deactivated')).catch(err => {
+            try {
+                await stompClient.deactivate()
+                console.log('WebSocket deactivated')
+            } catch (err) {
                 console.error('Error deactivating WebSocket:', err)
                 isConnected.value = false
-            })
+            }
         }
     }
 
@@ -87,6 +90,7 @@ export const useWebSocket = () => {
                     callback(data)
                 } catch (error) {
                     console.error('Error parsing message:', error)
+                    throw error
                 }
             })
 
@@ -111,17 +115,23 @@ export const useWebSocket = () => {
             })
         } catch (error) {
             console.error('Error sending message:', error)
+            throw error
         }
     }
 
     // tự động kết nối hoặc ngắt kết nối dựa trên trạng thái xác thực
     watch(
         () => auth.isAuthenticated.value,
-        (authenticated) => {
-            if (authenticated)
-                connect().catch(err => console.error('Failed to connect WebSocket:', err))
-            else
-                disconnect()
+        async (authenticated) => {
+            if (authenticated) {
+                try {
+                    await connect()
+                } catch (err) {
+                    console.error('Failed to connect WebSocket:', err)
+                }
+            } else {
+                await disconnect()
+            }
         },
         { immediate: false }
     )

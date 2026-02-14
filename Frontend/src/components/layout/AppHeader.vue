@@ -45,9 +45,9 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useAuth } from '@/composables/useAuth'
+import { useAuth } from '@/composables/useAuth.js'
 import { useRouter } from 'vue-router'
-import NotificationDropdown from '@/components/ui/NotificationDropdown.vue'
+import NotificationDropdown from '@/components/ui/notification/NotificationDropdown.vue'
 
 const auth = useAuth()
 const router = useRouter()
