@@ -9,7 +9,7 @@ public interface GroupService {
 
     GroupResponse getGroupById(Long groupId);
 
-    Page<GroupResponse> getAllGroups(Pageable pageable);
+    Page<GroupResponse> getGroups(Long currentUserId, Boolean joined, Pageable pageable);
 
     GroupResponse createGroup(Long currentUserId, GroupRequest groupRequest);
 

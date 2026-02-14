@@ -26,8 +26,8 @@ public class PostController {
     @GetMapping
     public ApiResponse<Page<PostResponse>> getPostsForNewsFeed(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size
     ) {
         Long currentUserId = Long.parseLong(jwt.getSubject());
         Pageable pageable = PageRequest.of(page, Math.min(size, 10));
@@ -40,8 +40,8 @@ public class PostController {
     @GetMapping("/groups")
     public ApiResponse<Page<PostResponse>> getGroupPostsForNewsFeed(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size
     ) {
         Long currentUserId = Long.parseLong(jwt.getSubject());
         Pageable pageable = PageRequest.of(page, Math.min(size, 10));
@@ -54,8 +54,8 @@ public class PostController {
     @GetMapping("/friends")
     public ApiResponse<Page<PostResponse>> getFriendsPostsForNewsFeed(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size
     ) {
         Long currentUserId = Long.parseLong(jwt.getSubject());
         Pageable pageable = PageRequest.of(page, Math.min(size, 10));
@@ -69,8 +69,8 @@ public class PostController {
     public ApiResponse<Page<PostResponse>> getPostsByGroupId(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long groupId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size
     ) {
         Long currentUserId = Long.parseLong(jwt.getSubject());
         Pageable pageable = PageRequest.of(page, Math.min(size, 10));
@@ -84,8 +84,8 @@ public class PostController {
     public ApiResponse<Page<PostResponse>> getPostsByUserIdForProfile(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size
     ) {
         Long currentUserId = Long.parseLong(jwt.getSubject());
         Pageable pageable = PageRequest.of(page, Math.min(size, 10));

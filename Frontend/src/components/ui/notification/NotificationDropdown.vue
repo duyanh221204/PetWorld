@@ -55,11 +55,8 @@
         </div>
 
         <div v-if="notifications.length > 0" class="dropdown-footer">
-          <router-link
-            to="/notifications"
-            class="see-more-link"
-          >
-            See all notifications
+          <router-link to="/notifications" class="view-more-link">
+            View all notifications
           </router-link>
         </div>
       </div>
@@ -70,9 +67,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useNotifications } from '@/composables/useNotifications'
+import { useNotifications } from '@/composables/useNotifications.js'
 import NotificationItem from './NotificationItem.vue'
-import LoadingSpinner from './LoadingSpinner.vue'
+import LoadingSpinner from '../LoadingSpinner.vue'
 
 const route = useRoute()
 const { notifications, unreadCount, isLoading, error, fetchLatestNotifications, markAllAsRead, markAsRead } = useNotifications()
@@ -112,7 +109,6 @@ const handleClickOutside = (event) => {
 onMounted(() => document.addEventListener('click', handleClickOutside))
 onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 
-// đóng dropdown khi route thay đổi (khi navigate sang trang notifications)
 watch(() => route.path, () => closeDropdown())
 </script>
 
@@ -187,7 +183,7 @@ watch(() => route.path, () => closeDropdown())
   @apply border-t border-gray-200 bg-gray-50 sticky bottom-0;
 }
 
-.see-more-link {
+.view-more-link {
   @apply block text-center py-3 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-gray-100 transition-colors;
 }
 

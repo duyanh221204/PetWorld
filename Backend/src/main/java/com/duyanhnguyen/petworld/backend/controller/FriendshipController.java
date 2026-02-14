@@ -24,8 +24,8 @@ public class FriendshipController {
     @GetMapping("/friendship-requests")
     public ApiResponse<Page<FriendshipRequestResponse>> getFriendshipRequests(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "100") int size
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "100") Integer size
     ) {
         Long currentUserId = Long.parseLong(jwt.getSubject());
         Pageable pageable = PageRequest.of(page, Math.min(size, 100));

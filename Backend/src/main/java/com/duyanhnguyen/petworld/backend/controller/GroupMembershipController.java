@@ -26,8 +26,8 @@ public class GroupMembershipController {
     @GetMapping
     public ApiResponse<Page<GroupMembershipResponse>> getGroupMembers(
             @PathVariable Long groupId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "100") int size
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "100") Integer size
     ) {
         Pageable pageable = PageRequest.of(page, Math.min(size, 100));
         return ApiResponse.<Page<GroupMembershipResponse>>builder()

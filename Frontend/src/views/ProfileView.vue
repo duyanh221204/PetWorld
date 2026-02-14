@@ -84,50 +84,52 @@
             </div>
           </div>
 
-          <div v-if="showFriendsList" class="friends-modal-overlay" @click="toggleFriendsList">
-            <div class="friends-modal" @click.stop>
-              <div class="friends-modal-header">
-                <h2 class="friends-modal-title">Friends</h2>
-                <button @click="toggleFriendsList" class="close-button">
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                </button>
-              </div>
-              
-              <div class="friends-list">
-                <LoadingSpinner v-if="isLoadingFriends" size="md" class="my-4" />
+          <Transition name="modal">
+            <div v-if="showFriendsList" class="friends-modal-overlay" @click="toggleFriendsList">
+              <div class="friends-modal" @click.stop>
+                <div class="friends-modal-header">
+                  <h2 class="friends-modal-title">Friends</h2>
+                  <button @click="toggleFriendsList" class="close-button">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
                 
-                <template v-else>
-                  <div class="friends-grid">
-                    <div 
-                      v-for="friend in friends" 
-                      :key="friend.id"
-                      @click="goToProfile(friend.id)"
-                      class="friend-item"
-                    >
-                      <img 
-                        :src="friend.avatar || defaultAvatar" 
-                        :alt="friend.username"
-                        class="friend-avatar"
-                      />
-                      <span class="friend-username">{{ friend.username }}</span>
+                <div class="friends-list">
+                  <LoadingSpinner v-if="isLoadingFriends" size="md" class="my-4" />
+                  
+                  <template v-else>
+                    <div class="friends-grid">
+                      <div 
+                        v-for="friend in friends" 
+                        :key="friend.id"
+                        @click="goToProfile(friend.id)"
+                        class="friend-item"
+                      >
+                        <img 
+                          :src="friend.avatar || defaultAvatar" 
+                          :alt="friend.username"
+                          class="friend-avatar"
+                        />
+                        <span class="friend-username">{{ friend.username }}</span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div v-if="hasMoreFriends" class="load-more-friends">
-                    <button @click="loadMoreFriends" class="btn-load-more" :disabled="isLoadingFriends">
-                      Load More
-                    </button>
-                  </div>
+                    <div v-if="hasMoreFriends" class="load-more-friends">
+                      <button @click="loadMoreFriends" class="btn-load-more" :disabled="isLoadingFriends">
+                        Load More
+                      </button>
+                    </div>
 
-                  <div v-if="!isLoadingFriends && friends.length === 0" class="empty-friends">
-                    <p>No friends yet</p>
-                  </div>
-                </template>
+                    <div v-if="!isLoadingFriends && friends.length === 0" class="empty-friends">
+                      <p>No friends yet</p>
+                    </div>
+                  </template>
+                </div>
               </div>
             </div>
-          </div>
+          </Transition>
 
           <div ref="postsSection" class="posts-section">
             <h2 class="section-title">Posts</h2>
@@ -216,13 +218,14 @@ import { useRoute, useRouter } from 'vue-router'
 import defaultAvatar from '@/assets/images/default-avatar.png'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
-import LeftSidebar from '@/components/layout/LeftSidebar.vue'
-import RightSidebar from '@/components/layout/RightSidebar.vue'
+import LeftSidebar from '@/components/layout/sidebar/LeftSidebar.vue'
+import RightSidebar from '@/components/layout/sidebar/RightSidebar.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import PostItem from '@/components/ui/PostItem.vue'
 import { userApi } from '@/api/user'
 import { friendshipApi } from '@/api/friendship'
 import { postApi } from '@/api/post'
+import { reactionApi } from '@/api/reaction'
 import { useAuth } from '@/composables/useAuth'
 
 const route = useRoute()
@@ -555,15 +558,32 @@ const handleRefreshPost = async (postId) => {
 }
 
 const handleToggleReaction = async (postId) => {
-  // TODO: Implement reaction API
   const post = userPosts.value.find(p => p.id === postId)
-  if (post) {
-    if (post.isReactedByCurrentUser) {
-      post.reactionCount--
-      post.isReactedByCurrentUser = false
-    } else {
-      post.reactionCount++
+  if (!post)
+    return
+
+  const wasReacted = post.isReactedByCurrentUser
+  if (wasReacted) {
+    --post.reactionCount
+    post.isReactedByCurrentUser = false
+  } else {
+    ++post.reactionCount
+    post.isReactedByCurrentUser = true
+  }
+
+  try {
+    if (wasReacted)
+      await reactionApi.deleteReaction(postId)
+    else
+      await reactionApi.createReaction(postId)
+  } catch (error) {
+    console.error('Failed to toggle reaction:', error)
+    if (wasReacted) {
+      ++post.reactionCount
       post.isReactedByCurrentUser = true
+    } else {
+      --post.reactionCount
+      post.isReactedByCurrentUser = false
     }
   }
 }
@@ -682,10 +702,12 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 
 .friends-modal-overlay {
   @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+  will-change: opacity;
 }
 
 .friends-modal {
   @apply bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col;
+  will-change: transform, opacity;
 }
 
 .friends-modal-header {
@@ -816,9 +838,12 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   @apply px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[120px];
 }
 
-.modal-enter-active,
+.modal-enter-active {
+  transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .modal-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .modal-enter-from,
@@ -827,12 +852,19 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 }
 
 .modal-enter-active .modal-dialog,
-.modal-leave-active .modal-dialog {
-  transition: transform 0.3s ease;
+.modal-enter-active .friends-modal {
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-leave-active .modal-dialog,
+.modal-leave-active .friends-modal {
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .modal-enter-from .modal-dialog,
-.modal-leave-to .modal-dialog {
-  transform: translateY(-20px);
+.modal-leave-to .modal-dialog,
+.modal-enter-from .friends-modal,
+.modal-leave-to .friends-modal {
+  transform: scale(0.95) translateY(-16px);
 }
 </style>

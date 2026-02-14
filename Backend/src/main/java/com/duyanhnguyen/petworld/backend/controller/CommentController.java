@@ -30,8 +30,8 @@ public class CommentController {
     public ApiResponse<Page<CommentResponse>> getCommentsByPostId(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long postId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "50") Integer size
     ) {
         Long currentUserId = Long.parseLong(jwt.getSubject());
         Pageable pageable = PageRequest.of(page, Math.min(size, 50));

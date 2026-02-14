@@ -120,7 +120,13 @@
             d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
           />
         </svg>
-        <span>{{ post.reactionCount }}</span>
+        <span 
+          @click.stop="openReactionModal" 
+          class="reaction-count"
+          :class="{ 'cursor-pointer hover:underline': post.reactionCount > 0 }"
+        >
+          {{ post.reactionCount }}
+        </span>
       </button>
       <button class="action-button">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,23 +143,31 @@
       </span>
     </div>
 
-    <div v-if="showDeleteModal" class="modal-overlay" @click="showDeleteModal = false">
-      <div class="modal-content" @click.stop>
-        <h2 class="modal-title">Confirm Delete</h2>
-        <p class="modal-message">
-          Are you sure you want to delete this post? This action cannot be undone.
-        </p>
-        <div class="modal-actions">
-          <button @click="showDeleteModal = false" class="btn-modal-cancel" :disabled="isDeleting">
-            Cancel
-          </button>
-          <button @click="confirmDelete" class="btn-modal-confirm" :disabled="isDeleting">
-            <LoadingSpinner v-if="isDeleting" size="sm" />
-            <span v-else>Delete</span>
-          </button>
+    <Transition name="modal">
+      <div v-if="showDeleteModal" class="modal-overlay" @click="showDeleteModal = false">
+        <div class="modal-content" @click.stop>
+          <h2 class="modal-title">Confirm Delete</h2>
+          <p class="modal-message">
+            Are you sure you want to delete this post? This action cannot be undone.
+          </p>
+          <div class="modal-actions">
+            <button @click="showDeleteModal = false" class="btn-modal-cancel" :disabled="isDeleting">
+              Cancel
+            </button>
+            <button @click="confirmDelete" class="btn-modal-confirm" :disabled="isDeleting">
+              <LoadingSpinner v-if="isDeleting" size="sm" />
+              <span v-else>Delete</span>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
+
+    <ReactionModal 
+      :is-open="showReactionModal"
+      :postId="post.id"
+      @close="showReactionModal = false"
+    />
   </div>
 </template>
 
@@ -161,9 +175,10 @@
 import defaultAvatar from '@/assets/images/default-avatar.png'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuth } from '@/composables/useAuth'
-import { postApi } from '@/api/post'
+import { useAuth } from '@/composables/useAuth.js'
+import { postApi } from '@/api/post.js'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
+import ReactionModal from '@/components/ui/ReactionModal.vue'
 
 const props = defineProps({
   post: {
@@ -181,6 +196,7 @@ const showMenu = ref(false)
 const currentMediaIndex = ref(0)
 const showDeleteModal = ref(false)
 const isDeleting = ref(false)
+const showReactionModal = ref(false)
 
 const currentMedia = computed(() => {
   if (props.post.postMediaResources && props.post.postMediaResources.length > 0)
@@ -228,6 +244,11 @@ const confirmDelete = async () => {
 }
 
 const toggleReaction = () => emit('toggleReaction', props.post.id)
+
+const openReactionModal = () => {
+  if (props.post.reactionCount > 0)
+    showReactionModal.value = true
+}
 
 const prevMedia = () => {
   if (currentMediaIndex.value > 0)
@@ -398,6 +419,10 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
   @apply flex items-center space-x-2 text-gray-600 hover:text-primary-600 transition-colors;
 }
 
+.reaction-count {
+  @apply transition-colors;
+}
+
 .post-timestamps {
   @apply flex flex-col text-xs text-gray-500 space-y-1;
 }
@@ -408,10 +433,12 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 
 .modal-overlay {
   @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+  will-change: opacity;
 }
 
 .modal-content {
   @apply bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4;
+  will-change: transform, opacity;
 }
 
 .modal-title {
@@ -432,5 +459,31 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 
 .btn-modal-confirm {
   @apply flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 min-w-[100px];
+}
+
+.modal-enter-active {
+  transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-leave-active {
+  transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-active .modal-content {
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-leave-active .modal-content {
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-enter-from .modal-content,
+.modal-leave-to .modal-content {
+  transform: scale(0.95) translateY(-16px);
 }
 </style>

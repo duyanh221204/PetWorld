@@ -47,8 +47,12 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public Page<GroupResponse> getAllGroups(Pageable pageable) {
-        Page<GroupEntity> groupsPage = groupRepository.findAll(pageable);
+    public Page<GroupResponse> getGroups(Long currentUserId, Boolean joined, Pageable pageable) {
+        Page<GroupEntity> groupsPage = joined
+                ? groupRepository.findGroupsJoinedByUserId(currentUserId, pageable)
+                : groupRepository.findGroupsNotJoinedByUserId(currentUserId, pageable);
+        if (groupsPage.isEmpty())
+            return Page.empty(pageable);
 
         List<GroupEntity> groupsPageContent = groupsPage.getContent();
         List<Long> groupIds = groupsPageContent.stream().map(GroupEntity::getId).collect(Collectors.toList());

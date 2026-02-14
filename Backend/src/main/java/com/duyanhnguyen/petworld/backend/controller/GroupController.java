@@ -24,14 +24,17 @@ public class GroupController {
     GroupService groupService;
 
     @GetMapping
-    public ApiResponse<Page<GroupResponse>> getAllGroups(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "100") int size
+    public ApiResponse<Page<GroupResponse>> getGroups(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(defaultValue = "true") Boolean joined,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "100") Integer size
     ) {
+        Long currentUserId = Long.parseLong(jwt.getSubject());
         Pageable pageable = PageRequest.of(page, Math.min(size, 100));
         return ApiResponse.<Page<GroupResponse>>builder()
                 .message("Groups retrieved successfully")
-                .data(groupService.getAllGroups(pageable))
+                .data(groupService.getGroups(currentUserId, joined, pageable))
                 .build();
     }
 
