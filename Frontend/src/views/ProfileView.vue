@@ -252,6 +252,22 @@ const showFriendsList = ref(false)
 
 const postsSection = ref(null)
 
+watch(() => route.query.t, (newTimestamp, oldTimestamp) => {
+  if (newTimestamp && newTimestamp !== oldTimestamp) {
+    profile.value = null
+    friendshipStatus.value = null
+    userPosts.value = []
+    friends.value = []
+    currentPostPage.value = 0
+    hasMorePosts.value = true
+    currentFriendPage.value = 0
+    hasMoreFriends.value = true
+    showFriendsList.value = false
+
+    loadProfile()
+  }
+})
+
 const isOwnProfile = computed(() => user.value?.id === profile.value?.id)
 
 const friendshipButtonText = computed(() => {

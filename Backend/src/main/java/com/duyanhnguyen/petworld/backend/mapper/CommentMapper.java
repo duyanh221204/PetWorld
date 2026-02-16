@@ -17,7 +17,11 @@ public interface CommentMapper {
     @Mapping(source = "sender.id", target = "senderId")
     @Mapping(source = "sender.username", target = "senderUsername")
     @Mapping(source = "sender.avatar", target = "senderAvatar")
-    @Mapping(source = "post.id", target = "postId")
+    @Mapping(source = "parentComment.id", target = "parentCommentId")
+    @Mapping(source = "parentComment.sender.id", target = "parentCommentSenderId")
+    @Mapping(source = "parentComment.sender.username", target = "parentCommentSenderUsername")
+    @Mapping(source = "parentComment.sender.avatar", target = "parentCommentSenderAvatar")
+    @Mapping(source = "rootComment.id", target = "rootCommentId")
     CommentResponse toResponse(CommentEntity entity);
 
     List<CommentResponse> toResponseList(List<CommentEntity> comments);

@@ -29,8 +29,12 @@
         <PostItem
           v-else
           :post="post"
+          :auto-open-comments="autoOpenComments"
+          :target-comment-id="targetCommentId"
+          :target-root-comment-id="targetRootCommentId"
           @refresh="fetchPost"
           @toggle-reaction="handleToggleReaction"
+          @comment-modal-opened="handleCommentModalOpened"
         />
       </div>
 
@@ -42,7 +46,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { postApi } from '@/api/post'
 import { reactionApi } from '@/api/reaction'
@@ -59,6 +63,24 @@ const postId = ref(parseInt(route.params.id))
 const post = ref(null)
 const isLoading = ref(false)
 const error = ref(null)
+
+// Kiểm tra nếu thông báo có commentId
+const autoOpenComments = computed(() => !!(route.query.commentId || route.query.rootCommentId))
+
+const targetCommentId = computed(() => route.query.commentId ? parseInt(route.query.commentId) : null)
+
+const targetRootCommentId = computed(() => route.query.rootCommentId ? parseInt(route.query.rootCommentId) : null)
+
+watch(() => route.query.t, (newTimestamp, oldTimestamp) => {
+  // Reload post nếu timestamp thay đổi
+  if (newTimestamp && newTimestamp !== oldTimestamp)
+    fetchPost()
+})
+
+const handleCommentModalOpened = () => {
+  // Clear query params after modal is opened to prevent re-opening on refresh
+  // This is optional - depends on UX preference
+}
 
 const fetchPost = async () => {
   isLoading.value = true

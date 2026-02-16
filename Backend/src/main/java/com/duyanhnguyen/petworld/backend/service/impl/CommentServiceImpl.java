@@ -4,6 +4,7 @@ import com.duyanhnguyen.petworld.backend.dto.request.CommentCreateRequest;
 import com.duyanhnguyen.petworld.backend.dto.request.CommentUpdateRequest;
 import com.duyanhnguyen.petworld.backend.dto.request.NotificationRequest;
 import com.duyanhnguyen.petworld.backend.dto.response.CommentResponse;
+import com.duyanhnguyen.petworld.backend.dto.response.PageResponse;
 import com.duyanhnguyen.petworld.backend.entity.CommentEntity;
 import com.duyanhnguyen.petworld.backend.entity.PostEntity;
 import com.duyanhnguyen.petworld.backend.entity.UserEntity;
@@ -50,7 +51,7 @@ public class CommentServiceImpl implements CommentService {
         validateCommentViewPermission(currentUserId, postId);
 
         Page<CommentEntity> commentsPage = commentRepository
-                .findByPostIdAndParentCommentIsNullOrderByCreatedAtDesc(postId, pageable);
+                .findByPostIdAndRootCommentIsNullOrderByCreatedAtDesc(postId, pageable);
 
         List<CommentResponse> commentResponses = commentMapper.toResponseList(commentsPage.getContent());
         Map<Long, Long> replyCounts = getReplyCounts(commentsPage.getContent());
@@ -62,33 +63,29 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public CommentResponse getCommentById(Long currentUserId, Long postId, Long commentId) {
+    public PageResponse getCommentPage(Long currentUserId, Long postId, Long commentId, Integer size) {
         validateCommentViewPermission(currentUserId, postId);
+
         CommentEntity commentEntity = commentRepository.findById(commentId)
                 .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
-        return commentMapper.toResponse(commentEntity);
+        Long newerCount = commentRepository.countNewerComments(postId, commentId, commentEntity.getCreatedAt());
+
+        return PageResponse.builder()
+                .page((int) (newerCount / size))
+                .size(size)
+                .build();
     }
 
     @Override
-    public List<CommentResponse> getRepliesByCommentId(Long currentUserId, Long postId, Long commentId) {
+    public List<CommentResponse> getRepliesByRootCommentId(Long currentUserId, Long postId, Long rootCommentId) {
         validateCommentViewPermission(currentUserId, postId);
 
-        if (!commentRepository.existsById(commentId))
+        if (!commentRepository.existsById(rootCommentId))
             throw new AppException(ErrorCode.COMMENT_NOT_FOUND);
 
         List<CommentEntity> replies = commentRepository
-                .findByParentCommentIdOrderByCreatedAtAsc(commentId);
-
-        List<CommentResponse> responses = commentMapper.toResponseList(replies);
-        responses.forEach(
-                response -> response.setParentCommentId(commentId)
-        );
-
-        Map<Long, Long> replyCounts = getReplyCounts(replies);
-        responses.forEach(
-                response -> response.setReplyCount(replyCounts.getOrDefault(response.getId(), 0L))
-        );
-        return responses;
+                .findByRootCommentIdOrderByCreatedAtAsc(rootCommentId);
+        return commentMapper.toResponseList(replies);
     }
 
     @Transactional
@@ -112,9 +109,19 @@ public class CommentServiceImpl implements CommentService {
         commentEntity.setPost(postEntity);
         commentEntity.setParentComment(parentComment);
 
+        if (parentComment == null)
+            commentEntity.setRootComment(null);
+        else {
+            CommentEntity rootComment = parentComment.getRootComment();
+            if (rootComment == null)
+                commentEntity.setRootComment(parentComment);
+            else
+                commentEntity.setRootComment(rootComment);
+        }
+
         CommentEntity toSave = commentRepository.save(commentEntity);
 
-        if (!sender.getId().equals(postEntity.getCreator().getId()) &&
+        if (parentComment == null && !sender.getId().equals(postEntity.getCreator().getId()) &&
                 (postEntity.getGroup() == null ||
                         groupMembershipRepository.existsByUserIdAndGroupId(postEntity.getCreator().getId(), postEntity.getGroup().getId())))
             notificationService.sendNotification(
@@ -140,7 +147,7 @@ public class CommentServiceImpl implements CommentService {
                             .build()
             );
 
-        return commentMapper.toResponse(commentEntity);
+        return commentMapper.toResponse(toSave);
     }
 
     @Transactional
@@ -149,7 +156,7 @@ public class CommentServiceImpl implements CommentService {
         CommentEntity commentEntity = validateCommentSender(currentUserId, postId, commentId);
         commentEntity.setContent(commentUpdateRequest.getContent());
         commentEntity.setUpdatedAt(Instant.now());
-        return commentMapper.toResponse(commentRepository.save(commentEntity));
+        return commentMapper.toResponse(commentEntity);
     }
 
     @Transactional
@@ -167,14 +174,14 @@ public class CommentServiceImpl implements CommentService {
                 .map(CommentEntity::getId)
                 .collect(Collectors.toList());
 
-        List<Object[]> counts = commentRepository.countRepliesByParentCommentIds(commentIds);
+        List<Object[]> counts = commentRepository.countRepliesByRootCommentIds(commentIds);
         return counts.stream().collect(Collectors.toMap(reply -> (Long) reply[0], reply -> (Long) reply[1]));
     }
 
     private void validateCommentViewPermission(Long currentUserId, Long postId) {
         PostEntity postEntity = postRepository.findById(postId)
                 .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
-        if (postEntity.getVisibility() == PostVisibility.PRIVATE)
+        if (!postEntity.getCreator().getId().equals(currentUserId) && postEntity.getVisibility() == PostVisibility.PRIVATE)
             throw new AppException(ErrorCode.UNAUTHORIZED);
         if (postEntity.getVisibility() == PostVisibility.GROUP_ONLY) {
             if (!groupMembershipRepository.existsByUserIdAndGroupId(currentUserId, postEntity.getGroup().getId()))

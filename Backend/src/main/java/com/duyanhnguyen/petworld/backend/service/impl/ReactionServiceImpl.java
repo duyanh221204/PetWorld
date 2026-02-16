@@ -9,6 +9,7 @@ import com.duyanhnguyen.petworld.backend.enums.ErrorCode;
 import com.duyanhnguyen.petworld.backend.enums.NotificationType;
 import com.duyanhnguyen.petworld.backend.exception.AppException;
 import com.duyanhnguyen.petworld.backend.mapper.ReactionMapper;
+import com.duyanhnguyen.petworld.backend.repository.NotificationRepository;
 import com.duyanhnguyen.petworld.backend.repository.PostRepository;
 import com.duyanhnguyen.petworld.backend.repository.ReactionRepository;
 import com.duyanhnguyen.petworld.backend.repository.UserRepository;
@@ -32,6 +33,7 @@ public class ReactionServiceImpl implements ReactionService {
     PostRepository postRepository;
     UserRepository userRepository;
     NotificationService notificationService;
+    NotificationRepository notificationRepository;
 
     @Override
     public Page<ReactionResponse> getReactionsByPostId(Long postId, Pageable pageable) {
@@ -72,9 +74,14 @@ public class ReactionServiceImpl implements ReactionService {
     @Transactional
     @Override
     public void deleteReaction(Long currentUserId, Long postId) {
+        PostEntity postEntity = postRepository.findById(postId)
+                .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
         ReactionEntity reactionEntity = reactionRepository.findBySenderIdAndPostId(currentUserId, postId)
                 .orElseThrow(() -> new AppException(ErrorCode.REACTION_NOT_FOUND));
+
         reactionRepository.delete(reactionEntity);
+        if (!postEntity.getCreator().getId().equals(currentUserId))
+            notificationRepository.deletePostReactionNotification(postId, currentUserId, postEntity.getCreator().getId());
     }
 
 }
