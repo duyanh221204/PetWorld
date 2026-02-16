@@ -5,7 +5,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
-import java.util.List;
 
 @Data
 @Builder
@@ -29,11 +28,16 @@ public class CommentResponse {
 
     String senderAvatar;
 
-    Long postId;
-
     Long parentCommentId;
 
-    List<CommentResponse> replies;
+    Long parentCommentSenderId;
+
+    String parentCommentSenderUsername;
+
+    String parentCommentSenderAvatar;
+
+    Long rootCommentId;
 
     Long replyCount;
+
 }

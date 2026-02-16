@@ -1,9 +1,9 @@
 <template>
-  <router-link
-    :to="notificationLink"
+  <a
+    href="#"
     class="notification-item"
     :class="{ 'unread': !notification.isRead }"
-    @click="handleClick"
+    @click.prevent="handleClick"
   >
     <div class="notification-avatar">
       <img
@@ -20,12 +20,13 @@
       <span class="notification-time">{{ formatTime(notification.createdAt) }}</span>
     </div>
     <div v-if="!notification.isRead" class="unread-indicator"></div>
-  </router-link>
+  </a>
 </template>
 
 <script setup>
 import defaultAvatar from '@/assets/images/default-avatar.png'
 import { computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
 const props = defineProps({
   notification: {
@@ -35,6 +36,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['click'])
+const router = useRouter()
+const route = useRoute()
 
 const senderName = computed(() => props.notification.senderUsername || 'PetWorld')
 
@@ -67,15 +70,21 @@ const notificationLink = computed(() => {
   const type = props.notification.type
   const senderId = props.notification.senderId
   const postId = props.notification.postId
+  const commentId = props.notification.commentId
+  const rootCommentId = props.notification.rootCommentId
 
   switch (type) {
     case 'FRIEND_REQUEST_RECEIVED':
     case 'FRIEND_REQUEST_ACCEPTED':
       return senderId ? `/profile/${senderId}` : '#'
     case 'POST_REACTED':
-    case 'POST_COMMENTED':
-    case 'COMMENT_REPLIED':
       return postId ? `/posts/${postId}` : '#'
+    case 'POST_COMMENTED':
+      return postId && commentId ? `/posts/${postId}?commentId=${commentId}` : (postId ? `/posts/${postId}` : '#')
+    case 'COMMENT_REPLIED':
+      return postId && commentId && rootCommentId 
+        ? `/posts/${postId}?commentId=${commentId}&rootCommentId=${rootCommentId}` 
+        : (postId ? `/posts/${postId}` : '#')
     default:
       return '#'
   }
@@ -112,7 +121,60 @@ const formatTime = (timestamp) => {
   }
 }
 
-const handleClick = () => emit('click', props.notification)
+const handleClick = () => {
+  emit('click', props.notification)
+  
+  const type = props.notification.type
+  const senderId = props.notification.senderId
+  const postId = props.notification.postId
+  const commentId = props.notification.commentId
+  const rootCommentId = props.notification.rootCommentId
+  
+  let targetPath = '#'
+  let targetQuery = {}
+  
+  switch (type) {
+    case 'FRIEND_REQUEST_RECEIVED':
+    case 'FRIEND_REQUEST_ACCEPTED':
+      if (senderId)
+        targetPath = `/profile/${senderId}`
+      break
+    case 'POST_REACTED':
+      if (postId)
+        targetPath = `/posts/${postId}`
+      break
+    case 'POST_COMMENTED':
+      if (postId) {
+        targetPath = `/posts/${postId}`
+        if (commentId)
+          targetQuery.commentId = commentId
+      }
+      break
+    case 'COMMENT_REPLIED':
+      if (postId) {
+        targetPath = `/posts/${postId}`
+        if (commentId && rootCommentId)
+          targetQuery.commentId = commentId
+          targetQuery.rootCommentId = rootCommentId
+      }
+      break
+  }
+  
+  if (targetPath !== '#') {
+    // kiểm tra xem có cùng đường dẫn không
+    const currentPath = route.path
+    const isSamePath = currentPath === targetPath
+
+    // nếu cùng đường dẫn, thêm timestamp để buộc reload
+    if (isSamePath)
+      targetQuery.t = Date.now()
+    
+    router.push({
+      path: targetPath,
+      query: targetQuery
+    })
+  }
+}
 </script>
 
 <style scoped>

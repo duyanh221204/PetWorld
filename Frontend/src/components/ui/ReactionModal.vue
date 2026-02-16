@@ -2,7 +2,6 @@
   <transition name="modal">
     <div v-if="isOpen" class="modal-overlay" @click="handleOverlayClick">
       <div class="modal-container" @click.stop>
-        <!-- Header -->
         <div class="modal-header">
           <h2 class="modal-title">Reactions ({{ totalElements }})</h2>
           <div class="header-actions">
@@ -19,7 +18,6 @@
           </div>
         </div>
 
-        <!-- Body -->
         <div class="modal-body">
           <div v-if="isLoading" class="loading-container">
             <LoadingSpinner />
@@ -53,7 +51,6 @@
           </div>
         </div>
 
-        <!-- Footer -->
         <div v-if="totalPages > 1" class="modal-footer">
           <button
             @click="goToPage(currentPage - 1)"

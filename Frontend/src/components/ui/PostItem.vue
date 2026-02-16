@@ -128,11 +128,11 @@
           {{ post.reactionCount }}
         </span>
       </button>
-      <button class="action-button">
+      <button @click="openCommentModal" class="action-button">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
         </svg>
-        <span>{{ post.commentCount }}</span>
+        <span class="comment-count cursor-pointer hover:underline">{{ post.commentCount }}</span>
       </button>
     </div>
 
@@ -168,26 +168,49 @@
       :postId="post.id"
       @close="showReactionModal = false"
     />
+
+    <CommentModal
+      :is-open="showCommentModal"
+      :postId="post.id"
+      :target-comment-id="targetCommentId"
+      :target-root-comment-id="targetRootCommentId"
+      @close="handleCommentModalClose"
+      @comment-added="handleCommentAdded"
+      @comment-deleted="handleCommentDeleted"
+    />
   </div>
 </template>
 
 <script setup>
 import defaultAvatar from '@/assets/images/default-avatar.png'
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth.js'
 import { postApi } from '@/api/post.js'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import ReactionModal from '@/components/ui/ReactionModal.vue'
+import CommentModal from '@/components/ui/CommentModal.vue'
 
 const props = defineProps({
   post: {
     type: Object,
     required: true
+  },
+  autoOpenComments: {
+    type: Boolean,
+    default: false
+  },
+  targetCommentId: {
+    type: Number,
+    default: null
+  },
+  targetRootCommentId: {
+    type: Number,
+    default: null
   }
 })
 
-const emit = defineEmits(['refresh', 'toggleReaction', 'delete'])
+const emit = defineEmits(['refresh', 'toggleReaction', 'delete', 'commentModalOpened'])
 
 const router = useRouter()
 const { user } = useAuth()
@@ -197,6 +220,7 @@ const currentMediaIndex = ref(0)
 const showDeleteModal = ref(false)
 const isDeleting = ref(false)
 const showReactionModal = ref(false)
+const showCommentModal = ref(false)
 
 const currentMedia = computed(() => {
   if (props.post.postMediaResources && props.post.postMediaResources.length > 0)
@@ -249,6 +273,35 @@ const openReactionModal = () => {
   if (props.post.reactionCount > 0)
     showReactionModal.value = true
 }
+
+const openCommentModal = () => {
+  showCommentModal.value = true
+  emit('commentModalOpened')
+}
+
+const handleCommentModalClose = () => showCommentModal.value = false
+
+const handleCommentAdded = () => {
+  if (props.post.commentCount !== undefined)
+    ++props.post.commentCount
+  emit('refresh', props.post.id)
+}
+
+const handleCommentDeleted = () => {
+  if (props.post.commentCount !== undefined && props.post.commentCount > 0)
+    --props.post.commentCount
+  emit('refresh', props.post.id)
+}
+
+// tự động mở modal comment nếu mở từ notification
+watch(() => props.autoOpenComments, (shouldOpen) => {
+  if (shouldOpen) {
+    nextTick(() => {
+      showCommentModal.value = true
+      emit('commentModalOpened')
+    })
+  }
+}, { immediate: true })
 
 const prevMedia = () => {
   if (currentMediaIndex.value > 0)

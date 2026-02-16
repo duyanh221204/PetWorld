@@ -4,6 +4,7 @@ import com.duyanhnguyen.petworld.backend.dto.request.CommentCreateRequest;
 import com.duyanhnguyen.petworld.backend.dto.request.CommentUpdateRequest;
 import com.duyanhnguyen.petworld.backend.dto.response.ApiResponse;
 import com.duyanhnguyen.petworld.backend.dto.response.CommentResponse;
+import com.duyanhnguyen.petworld.backend.dto.response.PageResponse;
 import com.duyanhnguyen.petworld.backend.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -41,29 +42,30 @@ public class CommentController {
                 .build();
     }
 
-    @GetMapping("/{commentId}")
-    public ApiResponse<CommentResponse> getCommentById(
+    @GetMapping("/page-of/{commentId}")
+    public ApiResponse<PageResponse> getCommentPage(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long postId,
-            @PathVariable Long commentId
+            @PathVariable Long commentId,
+            @RequestParam(defaultValue = "50") Integer size
     ) {
         Long currentUserId = Long.parseLong(jwt.getSubject());
-        return ApiResponse.<CommentResponse>builder()
-                .message("Comment retrieved successfully")
-                .data(commentService.getCommentById(currentUserId, postId, commentId))
+        return ApiResponse.<PageResponse>builder()
+                .message("Comment page retrieved successfully")
+                .data(commentService.getCommentPage(currentUserId, postId, commentId, size))
                 .build();
     }
 
-    @GetMapping("/{commentId}/replies")
-    public ApiResponse<List<CommentResponse>> getRepliesByCommentId(
+    @GetMapping("/{rootCommentId}/replies")
+    public ApiResponse<List<CommentResponse>> getRepliesByRootCommentId(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long postId,
-            @PathVariable Long commentId
+            @PathVariable Long rootCommentId
     ) {
         Long currentUserId = Long.parseLong(jwt.getSubject());
         return ApiResponse.<List<CommentResponse>>builder()
                 .message("Replies retrieved successfully")
-                .data(commentService.getRepliesByCommentId(currentUserId, postId, commentId))
+                .data(commentService.getRepliesByRootCommentId(currentUserId, postId, rootCommentId))
                 .build();
     }
 

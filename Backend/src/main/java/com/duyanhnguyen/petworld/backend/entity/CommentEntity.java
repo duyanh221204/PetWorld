@@ -54,6 +54,11 @@ public class CommentEntity {
     CommentEntity parentComment;
 
     @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "root_comment_id", referencedColumnName = "id")
+    CommentEntity rootComment;
+
+    @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, orphanRemoval = true)
     Set<CommentEntity> replies = new HashSet<>();

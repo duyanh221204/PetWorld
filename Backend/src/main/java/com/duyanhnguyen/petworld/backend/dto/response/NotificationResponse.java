@@ -35,6 +35,8 @@ public class NotificationResponse {
 
     Long commentId;
 
+    Long rootCommentId;
+
     Long friendshipId;
 
     Long groupId;
