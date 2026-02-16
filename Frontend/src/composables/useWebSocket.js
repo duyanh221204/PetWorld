@@ -129,9 +129,8 @@ export const useWebSocket = () => {
                 } catch (err) {
                     console.error('Failed to connect WebSocket:', err)
                 }
-            } else {
+            } else
                 await disconnect()
-            }
         },
         { immediate: false }
     )

@@ -166,9 +166,8 @@ export const useNotifications = () => {
             if (connected && auth.isAuthenticated.value && !notificationSubscription) {
                 console.log('WebSocket reconnected, resubscribing...')
                 await subscribeToNotifications()
-            } else if (!connected) {
+            } else if (!connected)
                 notificationSubscription = null // reset khi disconnect
-            }
         }
     )
 
