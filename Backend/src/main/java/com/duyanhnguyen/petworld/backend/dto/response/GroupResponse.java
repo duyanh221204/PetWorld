@@ -1,5 +1,6 @@
 package com.duyanhnguyen.petworld.backend.dto.response;
 
+import com.duyanhnguyen.petworld.backend.enums.GroupRole;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -23,6 +24,8 @@ public class GroupResponse {
     String coverImageUrl;
 
     Instant createdAt;
+
+    GroupRole currentUserRole;
 
     Long memberCount;
 

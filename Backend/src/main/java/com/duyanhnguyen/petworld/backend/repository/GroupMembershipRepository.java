@@ -37,4 +37,7 @@ public interface GroupMembershipRepository extends JpaRepository<GroupMembership
     @Query("select gm.user.id from GroupMembershipEntity gm where gm.group.id = :groupId and gm.role in :roles")
     Set<Long> findUserIdsByGroupIdAndRoleIn(@Param("groupId") Long groupId, @Param("roles") Collection<GroupRole> roles);
 
+    @Query("select gm.role from GroupMembershipEntity gm where gm.user.id = :userId and gm.group.id = :groupId")
+    Optional<GroupRole> findRoleByUserIdAndGroupId(@Param("userId") Long userId, @Param("groupId") Long groupId);
+
 }

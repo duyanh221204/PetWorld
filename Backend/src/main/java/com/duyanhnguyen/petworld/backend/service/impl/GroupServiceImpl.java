@@ -37,20 +37,74 @@ public class GroupServiceImpl implements GroupService {
     GroupMembershipRepository groupMembershipRepository;
 
     @Override
-    public GroupResponse getGroupById(Long groupId) {
-        GroupEntity groupEntity = groupRepository.findById(groupId)
-                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+    public Page<GroupResponse> getOwnedGroups(Long currentUserId, Pageable pageable) {
+        Page<GroupEntity> groupsPage = groupRepository.findOwnedGroupsByUserId(currentUserId, pageable);
+        if (groupsPage.isEmpty())
+            return Page.empty(pageable);
 
-        GroupResponse groupResponse = groupMapper.toResponse(groupEntity);
-        groupResponse.setMemberCount(groupMembershipRepository.countByGroupId(groupId));
-        return groupResponse;
+        List<GroupEntity> groupsPageContent = groupsPage.getContent();
+        List<Long> groupIds = groupsPageContent.stream().map(GroupEntity::getId).collect(Collectors.toList());
+
+        List<Object[]> members = groupMembershipRepository.countByGroupIds(groupIds);
+        Map<Long, Long> memberCounts = members.stream()
+                .collect(Collectors.toMap(member -> (Long) member[0], member -> (Long) member[1]));
+
+        List<GroupResponse> groupResponses = groupsPageContent.stream()
+                .map(
+                        groupEntity -> {
+                            GroupResponse groupResponse = groupMapper.toResponse(groupEntity);
+                            groupResponse.setMemberCount(memberCounts.get(groupEntity.getId()));
+                            groupResponse.setCurrentUserRole(GroupRole.OWNER);
+                            return groupResponse;
+                        }
+                )
+                .collect(Collectors.toList());
+        return new PageImpl<>(groupResponses, pageable, groupsPage.getTotalElements());
     }
 
     @Override
-    public Page<GroupResponse> getGroups(Long currentUserId, Boolean joined, Pageable pageable) {
-        Page<GroupEntity> groupsPage = joined
-                ? groupRepository.findGroupsJoinedByUserId(currentUserId, pageable)
-                : groupRepository.findGroupsNotJoinedByUserId(currentUserId, pageable);
+    public Page<GroupResponse> getJoinedGroups(Long currentUserId, Pageable pageable) {
+        Page<Object[]> groupsPage = groupRepository.findJoinedGroupsByUserId(currentUserId, pageable);
+        if (groupsPage.isEmpty())
+            return Page.empty(pageable);
+
+        List<Object[]> groupsPageContent = groupsPage.getContent();
+        List<Long> groupIds = groupsPageContent.stream()
+                .map(group -> ((GroupEntity) group[0]).getId())
+                .collect(Collectors.toList());
+
+        List<Object[]> members = groupMembershipRepository.countByGroupIds(groupIds);
+        Map<Long, Long> memberCounts = members.stream()
+                .collect(Collectors.toMap(member -> (Long) member[0], member -> (Long) member[1]));
+
+        List<GroupResponse> groupResponses = groupsPageContent.stream()
+                .map(
+                        group -> {
+                            GroupEntity groupEntity = (GroupEntity) group[0];
+                            GroupRole role = (GroupRole) group[1];
+                            GroupResponse groupResponse = groupMapper.toResponse(groupEntity);
+                            groupResponse.setMemberCount(memberCounts.get(groupEntity.getId()));
+                            groupResponse.setCurrentUserRole(role);
+                            return groupResponse;
+                        }
+                )
+                .collect(Collectors.toList());
+        return new PageImpl<>(groupResponses, pageable, groupsPage.getTotalElements());
+    }
+
+    @Override
+    public Page<GroupResponse> getJoinRequestedGroups(Long currentUserId, Pageable pageable) {
+        Page<GroupEntity> groupsPage = groupRepository.findJoinRequestedGroupsByUserId(currentUserId, pageable);
+        return buildGroupResponsePage(pageable, groupsPage);
+    }
+
+    @Override
+    public Page<GroupResponse> getGroupsNotJoinedOrRequested(Long currentUserId, Pageable pageable) {
+        Page<GroupEntity> groupsPage = groupRepository.findGroupsNotJoinedOrRequestedByUserId(currentUserId, pageable);
+        return buildGroupResponsePage(pageable, groupsPage);
+    }
+
+    private Page<GroupResponse> buildGroupResponsePage(Pageable pageable, Page<GroupEntity> groupsPage) {
         if (groupsPage.isEmpty())
             return Page.empty(pageable);
 
@@ -73,6 +127,18 @@ public class GroupServiceImpl implements GroupService {
         return new PageImpl<>(groupResponses, pageable, groupsPage.getTotalElements());
     }
 
+    @Override
+    public GroupResponse getGroupById(Long currentUserId, Long groupId) {
+        GroupEntity groupEntity = groupRepository.findById(groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+
+        GroupResponse groupResponse = groupMapper.toResponse(groupEntity);
+        groupResponse.setMemberCount(groupMembershipRepository.countByGroupId(groupId));
+        groupResponse.setCurrentUserRole(groupMembershipRepository.findRoleByUserIdAndGroupId(currentUserId, groupId)
+                .orElse(null));
+        return groupResponse;
+    }
+
     @Transactional
     @Override
     public GroupResponse createGroup(Long currentUserId, GroupRequest groupRequest) {
@@ -92,6 +158,7 @@ public class GroupServiceImpl implements GroupService {
 
         GroupResponse groupResponse = groupMapper.toResponse(groupRepository.save(groupEntity));
         groupResponse.setMemberCount(1L);
+        groupResponse.setCurrentUserRole(GroupRole.OWNER);
         return groupResponse;
     }
 
