@@ -7,9 +7,15 @@ import org.springframework.data.domain.Pageable;
 
 public interface GroupService {
 
-    GroupResponse getGroupById(Long groupId);
+    Page<GroupResponse> getOwnedGroups(Long currentUserId, Pageable pageable);
 
-    Page<GroupResponse> getGroups(Long currentUserId, Boolean joined, Pageable pageable);
+    Page<GroupResponse> getJoinedGroups(Long currentUserId, Pageable pageable);
+
+    Page<GroupResponse> getJoinRequestedGroups(Long currentUserId, Pageable pageable);
+
+    Page<GroupResponse> getGroupsNotJoinedOrRequested(Long currentUserId, Pageable pageable);
+
+    GroupResponse getGroupById(Long currentUserId, Long groupId);
 
     GroupResponse createGroup(Long currentUserId, GroupRequest groupRequest);
 

@@ -23,26 +23,68 @@ public class GroupController {
 
     GroupService groupService;
 
-    @GetMapping
-    public ApiResponse<Page<GroupResponse>> getGroups(
+    @GetMapping("/me/owned")
+    public ApiResponse<Page<GroupResponse>> getOwnedGroups(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestParam(defaultValue = "true") Boolean joined,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "100") Integer size
     ) {
         Long currentUserId = Long.parseLong(jwt.getSubject());
         Pageable pageable = PageRequest.of(page, Math.min(size, 100));
         return ApiResponse.<Page<GroupResponse>>builder()
-                .message("Groups retrieved successfully")
-                .data(groupService.getGroups(currentUserId, joined, pageable))
+                .message("Owned groups retrieved successfully")
+                .data(groupService.getOwnedGroups(currentUserId, pageable))
+                .build();
+    }
+
+    @GetMapping("/me/joined")
+    public ApiResponse<Page<GroupResponse>> getJoinedGroups(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "100") Integer size
+    ) {
+        Long currentUserId = Long.parseLong(jwt.getSubject());
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100));
+        return ApiResponse.<Page<GroupResponse>>builder()
+                .message("Joined groups retrieved successfully")
+                .data(groupService.getJoinedGroups(currentUserId, pageable))
+                .build();
+    }
+
+    @GetMapping("/me/requests")
+    public ApiResponse<Page<GroupResponse>> getJoinRequestedGroups(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "100") Integer size
+    ) {
+        Long currentUserId = Long.parseLong(jwt.getSubject());
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100));
+        return ApiResponse.<Page<GroupResponse>>builder()
+                .message("Join requested groups retrieved successfully")
+                .data(groupService.getJoinRequestedGroups(currentUserId, pageable))
+                .build();
+    }
+
+    @GetMapping("/discover")
+    public ApiResponse<Page<GroupResponse>> getGroupsNotJoinedOrRequested(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "100") Integer size
+    ) {
+        Long currentUserId = Long.parseLong(jwt.getSubject());
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100));
+        return ApiResponse.<Page<GroupResponse>>builder()
+                .message("Groups not joined or requested retrieved successfully")
+                .data(groupService.getGroupsNotJoinedOrRequested(currentUserId, pageable))
                 .build();
     }
 
     @GetMapping("/{groupId}")
-    public ApiResponse<GroupResponse> getGroupById(@PathVariable Long groupId) {
+    public ApiResponse<GroupResponse> getGroupById(@AuthenticationPrincipal Jwt jwt, @PathVariable Long groupId) {
+        Long currentUserId = Long.parseLong(jwt.getSubject());
         return ApiResponse.<GroupResponse>builder()
                 .message("Group retrieved successfully")
-                .data(groupService.getGroupById(groupId))
+                .data(groupService.getGroupById(currentUserId, groupId))
                 .build();
     }
 

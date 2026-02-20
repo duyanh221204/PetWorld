@@ -64,7 +64,8 @@ public class GroupMembershipServiceImpl implements GroupMembershipService {
 
         GroupMembershipEntity toDelete = groupMembershipRepository.findByUserIdAndGroupId(userId, groupId)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_MEMBERSHIP_NOT_FOUND));
-        if (toDelete.getRole() != GroupRole.MEMBER)
+        if (toDelete.getRole() == GroupRole.OWNER ||
+                (groupMembershipEntity.getRole() == GroupRole.ADMIN && toDelete.getRole() == GroupRole.ADMIN))
             throw new AppException(ErrorCode.UNAUTHORIZED);
 
         groupMembershipRepository.delete(toDelete);

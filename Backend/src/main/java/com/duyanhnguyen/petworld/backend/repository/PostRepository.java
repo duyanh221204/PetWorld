@@ -84,7 +84,8 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
     Page<PostEntity> findFriendsPostsForNewsFeed(@Param("currentUserId") Long currentUserId, Pageable pageable);
 
     @Query(
-            value = "select p from PostEntity p where p.creator.id = :creatorId and (:currentUserId = :creatorId or " +
+            value = "select p from PostEntity p where p.creator.id = :creatorId and " +
+                    "((:currentUserId = :creatorId and p.visibility <> com.duyanhnguyen.petworld.backend.enums.PostVisibility.GROUP_ONLY) or " +
                     "p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.PUBLIC or " +
                     "(p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.FRIENDS_ONLY and exists (" +
                     "select 1 from FriendshipEntity f " +
@@ -92,7 +93,8 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
                     "or (f.sender = p.creator and f.recipient.id = :currentUserId)) " +
                     "and f.acceptedAt is not null))) " +
                     "order by p.createdAt desc",
-            countQuery = "select count(p) from PostEntity p where p.creator.id = :creatorId and (:currentUserId = :creatorId or " +
+            countQuery = "select count(p) from PostEntity p where p.creator.id = :creatorId and " +
+                    "((:currentUserId = :creatorId and p.visibility <> com.duyanhnguyen.petworld.backend.enums.PostVisibility.GROUP_ONLY) or " +
                     "p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.PUBLIC or " +
                     "(p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.FRIENDS_ONLY and exists (" +
                     "select 1 from FriendshipEntity f " +

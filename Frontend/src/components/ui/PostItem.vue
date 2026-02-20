@@ -52,7 +52,7 @@
                 <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
               </svg>
             </template>
-            <template v-if="post.groupName">
+            <template v-if="post.groupName && !hideGroupName">
               <svg class="arrow-icon" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
               </svg>
@@ -207,6 +207,10 @@ const props = defineProps({
   targetRootCommentId: {
     type: Number,
     default: null
+  },
+  hideGroupName: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -319,8 +323,8 @@ const goToProfile = () => {
 }
 
 const goToGroup = () => {
-  // TODO: Navigate to group
-  console.log('Navigate to group:', props.post.groupId)
+  if (props.post.groupId)
+    router.push({ name: 'GroupDetail', params: { groupId: props.post.groupId } })
 }
 
 const formatTime = (timestamp) => {
