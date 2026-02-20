@@ -28,6 +28,14 @@ public interface GroupMembershipRepository extends JpaRepository<GroupMembership
 
     Long countByGroupId(Long groupId);
 
+    @Query(
+            value = "select gm from GroupMembershipEntity gm where gm.group.id = :groupId order by case " +
+                    "when gm.role = com.duyanhnguyen.petworld.backend.enums.GroupRole.OWNER then 1 " +
+                    "when gm.role = com.duyanhnguyen.petworld.backend.enums.GroupRole.ADMIN then 2 " +
+                    "when gm.role = com.duyanhnguyen.petworld.backend.enums.GroupRole.MEMBER then 3 " +
+                    "else 4 end, gm.joinedAt desc",
+            countQuery = "select count(gm) from GroupMembershipEntity gm where gm.group.id = :groupId"
+    )
     @EntityGraph(attributePaths = {"user", "group"})
     Page<GroupMembershipEntity> findByGroupId(Long groupId, Pageable pageable);
 

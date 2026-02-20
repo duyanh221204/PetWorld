@@ -13,9 +13,8 @@ export const commentApi = {
 
     createComment(postId, content, parentCommentId = null) {
         const requestBody = { content }
-        if (parentCommentId) {
+        if (parentCommentId)
             requestBody.parentCommentId = parentCommentId
-        }
         return apiClient.post(`/posts/${postId}/comments`, requestBody)
     },
 

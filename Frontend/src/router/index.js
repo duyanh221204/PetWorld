@@ -82,6 +82,18 @@ const routes = [
         name: 'Notifications',
         component: () => import('@/views/NotificationsView.vue'),
         meta: { requiresAuth: true }
+    },
+    {
+        path: '/groups',
+        name: 'Groups',
+        component: () => import('@/views/GroupsView.vue'),
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/groups/:groupId',
+        name: 'GroupDetail',
+        component: () => import('@/views/GroupDetailView.vue'),
+        meta: { requiresAuth: true }
     }
 ]
 

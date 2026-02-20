@@ -30,7 +30,7 @@
 
             <div class="form-group">
               <label class="form-label">Visibility *</label>
-              <div class="visibility-options">
+              <div v-if="!isGroupPost" class="visibility-options">
                 <button
                   v-for="option in visibilityOptions"
                   :key="option.value"
@@ -43,6 +43,12 @@
                   </svg>
                   <span>{{ option.label }}</span>
                 </button>
+              </div>
+              <div v-else class="group-post-notice">
+                <svg class="w-5 h-5 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                </svg>
+                <span class="group-post-text">This post will only be visible to group members</span>
               </div>
             </div>
 
@@ -187,6 +193,8 @@ const { user } = useAuth()
 const fileInput = ref(null)
 const isEditMode = ref(false)
 const postId = ref(null)
+const groupId = ref(null)
+const isGroupPost = ref(false)
 const isSubmitting = ref(false)
 const showConfirmModal = ref(false)
 const errorMessage = ref('')
@@ -203,7 +211,7 @@ const visibilityOptions = [
   {
     value: 'PUBLIC',
     label: 'Public',
-    iconPath: 'M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z',
+    iconPath: 'M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 009 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z',
     fillRule: 'evenodd',
     clipRule: 'evenodd'
   },
@@ -244,7 +252,9 @@ const handleFileSelect = (event) => {
 const removeMedia = (index) => mediaItems.value.splice(index, 1)
 
 const handleCancel = () => {
-  if (isEditMode.value)
+  if (isGroupPost.value)
+    router.push({ name: 'GroupDetail', params: { groupId: groupId.value } })
+  else if (isEditMode.value)
     router.back()
   else
     router.push({ name: 'Profile', params: { userId: user.value.id } })
@@ -292,20 +302,19 @@ const confirmSubmit = async () => {
         } catch (uploadError) {
           console.error('Failed to upload file:', uploadError)
         }
-      } else if (item.mediaUrl) {
+      } else if (item.mediaUrl)
         uploadedMediaItems.push({
           id: item.id,
           mediaUrl: item.mediaUrl,
           displayOrder: i + 1
         })
-      }
     }
 
     const requestData = {
       content: formData.value.content || null,
       visibility: formData.value.visibility,
       postMediaResources: uploadedMediaItems.length > 0 ? uploadedMediaItems : null,
-      groupId: null
+      groupId: groupId.value || null
     }
 
     let response
@@ -317,10 +326,12 @@ const confirmSubmit = async () => {
     if (response.data.status === 200) {
       showConfirmModal.value = false
       
-      if (isEditMode.value)
+      if (isGroupPost.value)
+        await router.push({ name: 'GroupDetail', params: { groupId: groupId.value } })
+      else if (isEditMode.value)
         router.back()
       else
-        await router.push({name: 'Profile', params: {userId: user.value.id}})
+        await router.push({ name: 'Profile', params: { userId: user.value.id } })
     }
   } catch (error) {
     errorMessage.value = error.message || error.response?.data?.message || 'Failed to save post. Please try again.'
@@ -342,18 +353,21 @@ const loadPost = async () => {
       
       formData.value.content = post.content || ''
       formData.value.visibility = post.visibility || 'PUBLIC'
+
+      if (post.groupId) {
+        isGroupPost.value = true
+        groupId.value = post.groupId
+        formData.value.visibility = 'GROUP_ONLY'
+      }
       
-      if (post.postMediaResources && post.postMediaResources.length > 0) {
-        mediaItems.value = post.postMediaResources
-          .sort((a, b) => a.displayOrder - b.displayOrder)
-          .map((media) => ({
+      if (post.postMediaResources && post.postMediaResources.length > 0)
+        mediaItems.value = post.postMediaResources.map((media) => ({
             tempId: media.id,
             id: media.id,
             mediaUrl: media.mediaUrl,
             preview: null,
             file: null
           }))
-      }
     }
   } catch (error) {
     errorMessage.value = 'Failed to load post data'
@@ -363,10 +377,18 @@ const loadPost = async () => {
 
 onMounted(() => {
   const editPostId = route.query.editPostId
+  const groupIdParam = route.query.groupId
+  
   if (editPostId) {
     isEditMode.value = true
     postId.value = parseInt(editPostId)
     loadPost()
+  }
+  
+  if (groupIdParam) {
+    isGroupPost.value = true
+    groupId.value = parseInt(groupIdParam)
+    formData.value.visibility = 'GROUP_ONLY'
   }
 })
 </script>
@@ -434,6 +456,14 @@ onMounted(() => {
 
 .visibility-option span {
   @apply text-sm font-medium text-gray-700;
+}
+
+.group-post-notice {
+  @apply flex items-center gap-3 px-4 py-3 bg-primary-50 border-2 border-primary-200 rounded-lg;
+}
+
+.group-post-text {
+  @apply text-sm font-medium text-primary-700;
 }
 
 .media-upload-area {

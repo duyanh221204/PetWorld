@@ -128,8 +128,8 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
 
     @Override
     public Page<GroupJoinRequestResponse> getGroupJoinRequests(Long currentUserId, Long groupId, Pageable pageable) {
-        if (!groupMembershipRepository.existsByUserIdAndGroupIdAndRole(currentUserId, groupId, GroupRole.OWNER) &&
-                !groupMembershipRepository.existsByUserIdAndGroupIdAndRole(currentUserId, groupId, GroupRole.ADMIN))
+        if (!groupMembershipRepository.existsByUserIdAndGroupIdAndRoleIn(
+                currentUserId, groupId, Set.of(GroupRole.OWNER, GroupRole.ADMIN)))
             throw new AppException(ErrorCode.UNAUTHORIZED);
 
         Page<GroupJoinRequestEntity> groupJoinRequestsPage = groupJoinRequestRepository

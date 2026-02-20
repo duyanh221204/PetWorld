@@ -29,4 +29,6 @@ public class GroupResponse {
 
     Long memberCount;
 
+    Boolean isRequestedToJoin;
+
 }

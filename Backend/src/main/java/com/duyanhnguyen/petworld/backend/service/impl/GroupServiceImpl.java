@@ -55,6 +55,7 @@ public class GroupServiceImpl implements GroupService {
                             GroupResponse groupResponse = groupMapper.toResponse(groupEntity);
                             groupResponse.setMemberCount(memberCounts.get(groupEntity.getId()));
                             groupResponse.setCurrentUserRole(GroupRole.OWNER);
+                            groupResponse.setIsRequestedToJoin(false);
                             return groupResponse;
                         }
                 )
@@ -85,6 +86,7 @@ public class GroupServiceImpl implements GroupService {
                             GroupResponse groupResponse = groupMapper.toResponse(groupEntity);
                             groupResponse.setMemberCount(memberCounts.get(groupEntity.getId()));
                             groupResponse.setCurrentUserRole(role);
+                            groupResponse.setIsRequestedToJoin(false);
                             return groupResponse;
                         }
                 )
@@ -95,16 +97,6 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public Page<GroupResponse> getJoinRequestedGroups(Long currentUserId, Pageable pageable) {
         Page<GroupEntity> groupsPage = groupRepository.findJoinRequestedGroupsByUserId(currentUserId, pageable);
-        return buildGroupResponsePage(pageable, groupsPage);
-    }
-
-    @Override
-    public Page<GroupResponse> getGroupsNotJoinedOrRequested(Long currentUserId, Pageable pageable) {
-        Page<GroupEntity> groupsPage = groupRepository.findGroupsNotJoinedOrRequestedByUserId(currentUserId, pageable);
-        return buildGroupResponsePage(pageable, groupsPage);
-    }
-
-    private Page<GroupResponse> buildGroupResponsePage(Pageable pageable, Page<GroupEntity> groupsPage) {
         if (groupsPage.isEmpty())
             return Page.empty(pageable);
 
@@ -120,6 +112,35 @@ public class GroupServiceImpl implements GroupService {
                         groupEntity -> {
                             GroupResponse groupResponse = groupMapper.toResponse(groupEntity);
                             groupResponse.setMemberCount(memberCounts.get(groupEntity.getId()));
+                            groupResponse.setCurrentUserRole(null);
+                            groupResponse.setIsRequestedToJoin(true);
+                            return groupResponse;
+                        }
+                )
+                .collect(Collectors.toList());
+        return new PageImpl<>(groupResponses, pageable, groupsPage.getTotalElements());
+    }
+
+    @Override
+    public Page<GroupResponse> getGroupsNotJoinedOrRequested(Long currentUserId, Pageable pageable) {
+        Page<GroupEntity> groupsPage = groupRepository.findGroupsNotJoinedOrRequestedByUserId(currentUserId, pageable);
+        if (groupsPage.isEmpty())
+            return Page.empty(pageable);
+
+        List<GroupEntity> groupsPageContent = groupsPage.getContent();
+        List<Long> groupIds = groupsPageContent.stream().map(GroupEntity::getId).collect(Collectors.toList());
+
+        List<Object[]> members = groupMembershipRepository.countByGroupIds(groupIds);
+        Map<Long, Long> memberCounts = members.stream()
+                .collect(Collectors.toMap(member -> (Long) member[0], member -> (Long) member[1]));
+
+        List<GroupResponse> groupResponses = groupsPageContent.stream()
+                .map(
+                        groupEntity -> {
+                            GroupResponse groupResponse = groupMapper.toResponse(groupEntity);
+                            groupResponse.setMemberCount(memberCounts.get(groupEntity.getId()));
+                            groupResponse.setCurrentUserRole(null);
+                            groupResponse.setIsRequestedToJoin(false);
                             return groupResponse;
                         }
                 )
