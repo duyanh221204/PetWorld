@@ -30,6 +30,7 @@ public class NotificationServiceImpl implements NotificationService {
     CommentRepository commentRepository;
     FriendshipRepository friendshipRepository;
     GroupRepository groupRepository;
+    GroupJoinRequestRepository groupJoinRequestRepository;
     ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
@@ -67,6 +68,12 @@ public class NotificationServiceImpl implements NotificationService {
             notificationEntity.setGroup(
                     groupRepository.findById(notificationRequest.getGroupId())
                             .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND))
+            );
+        }
+        if (notificationRequest.getGroupJoinRequestId() != null) {
+            notificationEntity.setGroupJoinRequest(
+                    groupJoinRequestRepository.findById(notificationRequest.getGroupJoinRequestId())
+                            .orElseThrow(() -> new AppException(ErrorCode.GROUP_JOIN_REQUEST_NOT_FOUND))
             );
         }
 

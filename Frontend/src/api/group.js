@@ -31,5 +31,13 @@ export const groupApi = {
 
     createGroup(data) {
         return apiClient.post('/groups', data)
+    },
+
+    updateGroup(groupId, data) {
+        return apiClient.put(`/groups/${groupId}`, data)
+    },
+
+    deleteGroup(groupId) {
+        return apiClient.delete(`/groups/${groupId}`)
     }
 }

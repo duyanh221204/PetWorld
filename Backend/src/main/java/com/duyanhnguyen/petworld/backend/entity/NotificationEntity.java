@@ -62,6 +62,10 @@ public class NotificationEntity {
     @JoinColumn(name = "group_id", referencedColumnName = "id")
     GroupEntity group;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_join_request_id", referencedColumnName = "id")
+    GroupJoinRequestEntity groupJoinRequest;
+
     @Override
     public boolean equals(Object o) {
         if (this == o)

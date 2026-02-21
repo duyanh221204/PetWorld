@@ -41,4 +41,8 @@ public class NotificationResponse {
 
     Long groupId;
 
+    String groupName;
+
+    Long groupJoinRequestId;
+
 }

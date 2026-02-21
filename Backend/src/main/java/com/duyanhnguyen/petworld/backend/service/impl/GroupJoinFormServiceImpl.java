@@ -1,7 +1,6 @@
 package com.duyanhnguyen.petworld.backend.service.impl;
 
-import com.duyanhnguyen.petworld.backend.dto.request.GroupJoinFormCreateRequest;
-import com.duyanhnguyen.petworld.backend.dto.request.GroupJoinFormUpdateRequest;
+import com.duyanhnguyen.petworld.backend.dto.request.GroupJoinFormRequest;
 import com.duyanhnguyen.petworld.backend.dto.response.GroupJoinFormResponse;
 import com.duyanhnguyen.petworld.backend.entity.GroupJoinFormEntity;
 import com.duyanhnguyen.petworld.backend.entity.GroupMembershipEntity;
@@ -40,7 +39,12 @@ public class GroupJoinFormServiceImpl implements GroupJoinFormService {
     }
 
     @Override
-    public GroupJoinFormResponse getActiveGroupJoinForm(Long groupId) {
+    public GroupJoinFormResponse getActiveGroupJoinForm(Long currentUserId, Long groupId) {
+        GroupMembershipEntity groupMembershipEntity = groupMembershipRepository.findByUserIdAndGroupId(currentUserId, groupId)
+                .orElse(null);
+        if (groupMembershipEntity != null && groupMembershipEntity.getRole() == GroupRole.MEMBER)
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+
         GroupJoinFormEntity groupJoinFormEntity = groupJoinFormRepository.findByGroupIdAndIsActive(groupId, true)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_JOIN_FORM_NOT_FOUND));
         return groupJoinFormMapper.toResponse(groupJoinFormEntity);
@@ -48,17 +52,17 @@ public class GroupJoinFormServiceImpl implements GroupJoinFormService {
 
     @Transactional
     @Override
-    public GroupJoinFormResponse createGroupJoinForm(Long currentUserId, Long groupId, GroupJoinFormCreateRequest groupJoinFormCreateRequest) {
+    public GroupJoinFormResponse createGroupJoinForm(Long currentUserId, Long groupId, GroupJoinFormRequest groupJoinFormRequest) {
         GroupMembershipEntity groupMembershipEntity = groupMembershipRepository.findByUserIdAndGroupId(currentUserId, groupId)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_MEMBERSHIP_NOT_FOUND));
         if (groupMembershipEntity.getRole() != GroupRole.OWNER)
             throw new AppException(ErrorCode.UNAUTHORIZED);
 
-        GroupJoinFormEntity groupJoinFormEntity = groupJoinFormMapper.toEntity(groupJoinFormCreateRequest);
+        GroupJoinFormEntity groupJoinFormEntity = groupJoinFormMapper.toEntity(groupJoinFormRequest);
         groupJoinFormEntity.setGroup(groupMembershipEntity.getGroup());
         groupJoinFormEntity.setCreator(groupMembershipEntity.getUser());
 
-        if (groupJoinFormRepository.countByGroupId(groupId) > 0 && groupJoinFormCreateRequest.getIsActive())
+        if (groupJoinFormRepository.countByGroupId(groupId) > 0 && groupJoinFormRequest.getIsActive())
             groupJoinFormRepository.deactivateActiveGroupJoinForm(groupId);
 
         return groupJoinFormMapper.toResponse(groupJoinFormRepository.save(groupJoinFormEntity));
@@ -66,7 +70,7 @@ public class GroupJoinFormServiceImpl implements GroupJoinFormService {
 
     @Transactional
     @Override
-    public GroupJoinFormResponse updateGroupJoinForm(Long currentUserId, Long groupId, Long formId, GroupJoinFormUpdateRequest groupJoinFormUpdateRequest) {
+    public GroupJoinFormResponse updateGroupJoinForm(Long currentUserId, Long groupId, Long formId, GroupJoinFormRequest groupJoinFormRequest) {
         GroupMembershipEntity groupMembershipEntity = groupMembershipRepository.findByUserIdAndGroupId(currentUserId, groupId)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_MEMBERSHIP_NOT_FOUND));
         if (groupMembershipEntity.getRole() != GroupRole.OWNER)
@@ -74,7 +78,11 @@ public class GroupJoinFormServiceImpl implements GroupJoinFormService {
 
         GroupJoinFormEntity groupJoinFormEntity = groupJoinFormRepository.findByIdAndGroupId(formId, groupId)
                 .orElseThrow(() -> new AppException(ErrorCode.GROUP_JOIN_FORM_NOT_FOUND));
-        groupJoinFormMapper.update(groupJoinFormUpdateRequest, groupJoinFormEntity);
+
+        if (groupJoinFormRequest.getIsActive() && !groupJoinFormEntity.getIsActive())
+            groupJoinFormRepository.deactivateActiveGroupJoinForm(groupId);
+        groupJoinFormMapper.update(groupJoinFormRequest, groupJoinFormEntity);
+
         return groupJoinFormMapper.toResponse(groupJoinFormEntity);
     }
 

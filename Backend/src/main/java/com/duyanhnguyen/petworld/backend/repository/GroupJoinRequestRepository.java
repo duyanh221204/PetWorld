@@ -5,8 +5,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.Optional;
 
 @Repository
@@ -17,8 +21,25 @@ public interface GroupJoinRequestRepository extends JpaRepository<GroupJoinReque
 
     Optional<GroupJoinRequestEntity> findByIdAndGroupId(Long id, Long groupId);
 
+    Boolean existsByGroupIdAndSenderId(Long groupId, Long senderId);
+
     Boolean existsByIdAndGroupIdAndSenderId(Long id, Long groupId, Long senderId);
 
-    Optional<GroupJoinRequestEntity> findByIdAndGroupIdAndSenderId(Long id, Long groupId, Long senderId);
+    Boolean existsByGroupJoinFormId(Long groupJoinFormId);
+
+    Optional<GroupJoinRequestEntity> findByGroupIdAndSenderId(Long groupId, Long senderId);
+
+    Long countByGroupId(Long groupId);
+
+    @Query(
+            "select count(gjr) from GroupJoinRequestEntity gjr " +
+                    "where gjr.group.id = :groupId and (gjr.submittedAt < :submittedAt or (" +
+                    "gjr.submittedAt = :submittedAt and gjr.id < :joinRequestId))"
+    )
+    Long countOlderGroupJoinRequests(
+            @Param("groupId") Long groupId,
+            @Param("joinRequestId") Long joinRequestId,
+            @Param("submittedAt") Instant submittedAt
+    );
     
 }

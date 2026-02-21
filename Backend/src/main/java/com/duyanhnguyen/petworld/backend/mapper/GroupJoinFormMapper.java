@@ -1,7 +1,6 @@
 package com.duyanhnguyen.petworld.backend.mapper;
 
-import com.duyanhnguyen.petworld.backend.dto.request.GroupJoinFormCreateRequest;
-import com.duyanhnguyen.petworld.backend.dto.request.GroupJoinFormUpdateRequest;
+import com.duyanhnguyen.petworld.backend.dto.request.GroupJoinFormRequest;
 import com.duyanhnguyen.petworld.backend.dto.response.GroupJoinFormResponse;
 import com.duyanhnguyen.petworld.backend.entity.GroupJoinFormEntity;
 import org.mapstruct.Mapper;
@@ -14,7 +13,7 @@ import java.util.List;
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface GroupJoinFormMapper {
 
-    GroupJoinFormEntity toEntity(GroupJoinFormCreateRequest request);
+    GroupJoinFormEntity toEntity(GroupJoinFormRequest request);
 
     @Mapping(source = "creator.id", target = "creatorId")
     @Mapping(source = "creator.username", target = "creatorUsername")
@@ -22,6 +21,6 @@ public interface GroupJoinFormMapper {
 
     List<GroupJoinFormResponse> toResponseList(List<GroupJoinFormEntity> groupJoinForms);
 
-    void update(GroupJoinFormUpdateRequest request, @MappingTarget GroupJoinFormEntity entity);
+    void update(GroupJoinFormRequest request, @MappingTarget GroupJoinFormEntity entity);
 
 }

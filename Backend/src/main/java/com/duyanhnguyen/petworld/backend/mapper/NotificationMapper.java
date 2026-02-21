@@ -21,6 +21,8 @@ public interface NotificationMapper {
     @Mapping(source = "comment.rootComment.id", target = "rootCommentId")
     @Mapping(source = "friendship.id", target = "friendshipId")
     @Mapping(source = "group.id", target = "groupId")
+    @Mapping(source = "group.name", target = "groupName")
+    @Mapping(source = "groupJoinRequest.id", target = "groupJoinRequestId")
     NotificationResponse toResponse(NotificationEntity entity);
 
 }

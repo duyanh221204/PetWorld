@@ -15,7 +15,15 @@
     <div class="notification-content">
       <p class="notification-text">
         <span class="sender-name">{{ senderName }}</span>
-        {{ notificationMessage }}
+        <template v-if="notification.type === 'GROUP_JOIN_REQUEST_RECEIVED' && notification.groupName">
+          requested to join <span class="group-name">{{ notification.groupName }}</span>
+        </template>
+        <template v-else-if="notification.type === 'GROUP_JOIN_REQUEST_ACCEPTED' && notification.groupName">
+          accepted your join request to <span class="group-name">{{ notification.groupName }}</span>
+        </template>
+        <template v-else>
+          {{ notificationMessage }}
+        </template>
       </p>
       <span class="notification-time">{{ formatTime(notification.createdAt) }}</span>
     </div>
@@ -45,6 +53,7 @@ const senderAvatar = computed(() => props.notification.senderAvatar || defaultAv
 
 const notificationMessage = computed(() => {
   const type = props.notification.type
+  const groupName = props.notification.groupName
   
   switch (type) {
     case 'FRIEND_REQUEST_RECEIVED':
@@ -58,35 +67,11 @@ const notificationMessage = computed(() => {
     case 'COMMENT_REPLIED':
       return 'replied to your comment'
     case 'GROUP_JOIN_REQUEST_RECEIVED':
-      return 'requested to join your group'
+      return groupName ? `requested to join "${groupName}"` : 'requested to join your group'
     case 'GROUP_JOIN_REQUEST_ACCEPTED':
-      return 'accepted your group join request'
+      return groupName ? `accepted your join request to "${groupName}"` : 'accepted your group join request'
     default:
       return props.notification.message || ''
-  }
-})
-
-const notificationLink = computed(() => {
-  const type = props.notification.type
-  const senderId = props.notification.senderId
-  const postId = props.notification.postId
-  const commentId = props.notification.commentId
-  const rootCommentId = props.notification.rootCommentId
-
-  switch (type) {
-    case 'FRIEND_REQUEST_RECEIVED':
-    case 'FRIEND_REQUEST_ACCEPTED':
-      return senderId ? `/profile/${senderId}` : '#'
-    case 'POST_REACTED':
-      return postId ? `/posts/${postId}` : '#'
-    case 'POST_COMMENTED':
-      return postId && commentId ? `/posts/${postId}?commentId=${commentId}` : (postId ? `/posts/${postId}` : '#')
-    case 'COMMENT_REPLIED':
-      return postId && commentId && rootCommentId 
-        ? `/posts/${postId}?commentId=${commentId}&rootCommentId=${rootCommentId}` 
-        : (postId ? `/posts/${postId}` : '#')
-    default:
-      return '#'
   }
 })
 
@@ -125,6 +110,10 @@ const handleClick = () => {
   emit('click', props.notification)
   
   const type = props.notification.type
+
+  if (type === 'GROUP_JOIN_REQUEST_RECEIVED' || type === 'GROUP_JOIN_REQUEST_ACCEPTED')
+    return
+  
   const senderId = props.notification.senderId
   const postId = props.notification.postId
   const commentId = props.notification.commentId
@@ -203,6 +192,10 @@ const handleClick = () => {
 }
 
 .sender-name {
+  @apply font-semibold text-gray-900;
+}
+
+.group-name {
   @apply font-semibold text-gray-900;
 }
 

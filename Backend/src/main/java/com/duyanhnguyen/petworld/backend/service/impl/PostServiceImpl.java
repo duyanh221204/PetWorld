@@ -246,7 +246,8 @@ public class PostServiceImpl implements PostService {
     public void deletePost(Long currentUserId, Long postId) {
         PostEntity postEntity = postRepository.findById(postId)
                 .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
-        if (!postEntity.getCreator().getId().equals(currentUserId))
+        if (!postEntity.getCreator().getId().equals(currentUserId) &&
+                (postEntity.getGroup() == null || !groupMembershipRepository.existsByUserIdAndGroupId(currentUserId, postEntity.getGroup().getId())))
             throw new AppException(ErrorCode.UNAUTHORIZED);
         postRepository.delete(postEntity);
         applicationEventPublisher.publishEvent(new PostEvent(postId));

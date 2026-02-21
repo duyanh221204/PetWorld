@@ -28,41 +28,43 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
               </svg>
               <p class="empty-text">{{ getEmptyMessage() }}</p>
-            </div>          <div v-else class="groups-grid">
-            <div
-              v-for="group in groups"
-              :key="group.id"
-              @click="goToGroup(group.id)"
-              class="group-card"
-            >
-              <div class="group-cover-circle">
-                <img
-                  :src="group.coverImageUrl || defaultGroupCover"
-                  :alt="group.name"
-                  class="cover-image-circle"
-                  @error="(e) => e.target.src = defaultGroupCover"
-                />
-              </div>
+            </div>
 
-              <div class="group-content">
-                <div class="group-info">
-                  <h3 class="group-name">{{ group.name }}</h3>
-                  <div class="group-meta">
-                    <span class="meta-text">{{ group.memberCount }} {{ group.memberCount === 1 ? 'member' : 'members' }}</span>
-                    <span class="meta-separator">•</span>
-                    <span class="meta-text">{{ formatTime(group.createdAt) }}</span>
-                  </div>
-                  <p v-if="group.description" class="group-description">{{ group.description }}</p>
+            <div v-else class="groups-grid">
+              <div
+                v-for="group in groups"
+                :key="group.id"
+                @click="goToGroup(group.id)"
+                class="group-card"
+              >
+                <div class="group-cover-circle">
+                  <img
+                    :src="group.coverImageUrl || defaultGroupCover"
+                    :alt="group.name"
+                    class="cover-image-circle"
+                    @error="(e) => e.target.src = defaultGroupCover"
+                  />
                 </div>
 
-                <div class="group-status">
-                  <span :class="['status-badge', getStatusClass()]">
-                    {{ getStatusText(group) }}
-                  </span>
+                <div class="group-content">
+                  <div class="group-info">
+                    <h3 class="group-name">{{ group.name }}</h3>
+                    <div class="group-meta">
+                      <span class="meta-text">{{ group.memberCount }} {{ group.memberCount === 1 ? 'member' : 'members' }}</span>
+                      <span class="meta-separator">•</span>
+                      <span class="meta-text">{{ formatTime(group.createdAt) }}</span>
+                    </div>
+                    <p v-if="group.description" class="group-description">{{ group.description }}</p>
+                  </div>
+
+                  <div class="group-status">
+                    <span :class="['status-badge', getStatusClass()]">
+                      {{ getStatusText(group) }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
             <div v-if="isLoading && groups.length > 0" class="load-more">
               <LoadingSpinner size="md" />

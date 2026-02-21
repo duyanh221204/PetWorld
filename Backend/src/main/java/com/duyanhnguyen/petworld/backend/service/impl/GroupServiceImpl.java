@@ -9,6 +9,7 @@ import com.duyanhnguyen.petworld.backend.enums.ErrorCode;
 import com.duyanhnguyen.petworld.backend.enums.GroupRole;
 import com.duyanhnguyen.petworld.backend.exception.AppException;
 import com.duyanhnguyen.petworld.backend.mapper.GroupMapper;
+import com.duyanhnguyen.petworld.backend.repository.GroupJoinRequestRepository;
 import com.duyanhnguyen.petworld.backend.repository.GroupMembershipRepository;
 import com.duyanhnguyen.petworld.backend.repository.GroupRepository;
 import com.duyanhnguyen.petworld.backend.repository.UserRepository;
@@ -35,6 +36,7 @@ public class GroupServiceImpl implements GroupService {
     GroupMapper groupMapper;
     UserRepository userRepository;
     GroupMembershipRepository groupMembershipRepository;
+    GroupJoinRequestRepository groupJoinRequestRepository;
 
     @Override
     public Page<GroupResponse> getOwnedGroups(Long currentUserId, Pageable pageable) {
@@ -157,6 +159,7 @@ public class GroupServiceImpl implements GroupService {
         groupResponse.setMemberCount(groupMembershipRepository.countByGroupId(groupId));
         groupResponse.setCurrentUserRole(groupMembershipRepository.findRoleByUserIdAndGroupId(currentUserId, groupId)
                 .orElse(null));
+        groupResponse.setIsRequestedToJoin(groupJoinRequestRepository.existsByGroupIdAndSenderId(groupId, currentUserId));
         return groupResponse;
     }
 
