@@ -15,6 +15,9 @@ apiClient.interceptors.request.use(
         if (url.includes('/auth/login') || url.includes('/auth/refresh'))
             return config
 
+        if (!config.headers['Content-Type'])
+            config.headers['Content-Type'] = 'application/json'
+
         const auth = useAuth()
         if (auth.accessToken.value) {
             config.headers = config.headers || {}

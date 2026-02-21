@@ -28,4 +28,6 @@ public class NotificationRequest {
 
     Long groupId;
 
+    Long groupJoinRequestId;
+
 }

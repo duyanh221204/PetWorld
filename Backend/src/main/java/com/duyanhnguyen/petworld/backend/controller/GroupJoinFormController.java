@@ -1,7 +1,6 @@
 package com.duyanhnguyen.petworld.backend.controller;
 
-import com.duyanhnguyen.petworld.backend.dto.request.GroupJoinFormCreateRequest;
-import com.duyanhnguyen.petworld.backend.dto.request.GroupJoinFormUpdateRequest;
+import com.duyanhnguyen.petworld.backend.dto.request.GroupJoinFormRequest;
 import com.duyanhnguyen.petworld.backend.dto.response.ApiResponse;
 import com.duyanhnguyen.petworld.backend.dto.response.GroupJoinFormResponse;
 import com.duyanhnguyen.petworld.backend.service.GroupJoinFormService;
@@ -36,10 +35,14 @@ public class GroupJoinFormController {
     }
 
     @GetMapping("/active")
-    public ApiResponse<GroupJoinFormResponse> getActiveGroupJoinForm(@PathVariable Long groupId) {
+    public ApiResponse<GroupJoinFormResponse> getActiveGroupJoinForm(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long groupId
+    ) {
+        Long currentUserId = Long.parseLong(jwt.getSubject());
         return ApiResponse.<GroupJoinFormResponse>builder()
                 .message("Active group join form retrieved successfully")
-                .data(groupJoinFormService.getActiveGroupJoinForm(groupId))
+                .data(groupJoinFormService.getActiveGroupJoinForm(currentUserId, groupId))
                 .build();
     }
 
@@ -47,7 +50,7 @@ public class GroupJoinFormController {
     public ApiResponse<GroupJoinFormResponse> createGroupJoinForm(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long groupId,
-            @RequestBody @Valid GroupJoinFormCreateRequest request
+            @RequestBody @Valid GroupJoinFormRequest request
     ) {
         Long currentUserId = Long.parseLong(jwt.getSubject());
         return ApiResponse.<GroupJoinFormResponse>builder()
@@ -61,7 +64,7 @@ public class GroupJoinFormController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long groupId,
             @PathVariable Long formId,
-            @RequestBody @Valid GroupJoinFormUpdateRequest request
+            @RequestBody @Valid GroupJoinFormRequest request
     ) {
         Long currentUserId = Long.parseLong(jwt.getSubject());
         return ApiResponse.<GroupJoinFormResponse>builder()

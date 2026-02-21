@@ -11,6 +11,7 @@ public interface GroupJoinRequestMapper {
 
     @Mapping(source = "sender.id", target = "senderId")
     @Mapping(source = "sender.username", target = "senderUsername")
+    @Mapping(source = "sender.avatar", target = "senderAvatar")
     GroupJoinRequestResponse toResponse(GroupJoinRequestEntity entity);
 
 }

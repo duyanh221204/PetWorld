@@ -3,6 +3,7 @@ package com.duyanhnguyen.petworld.backend.service.impl;
 import com.duyanhnguyen.petworld.backend.dto.request.GroupJoinRequestCreateRequest;
 import com.duyanhnguyen.petworld.backend.dto.request.NotificationRequest;
 import com.duyanhnguyen.petworld.backend.dto.response.GroupJoinRequestResponse;
+import com.duyanhnguyen.petworld.backend.dto.response.PageResponse;
 import com.duyanhnguyen.petworld.backend.entity.GroupJoinFormEntity;
 import com.duyanhnguyen.petworld.backend.entity.GroupJoinRequestAnswerEntity;
 import com.duyanhnguyen.petworld.backend.entity.GroupJoinRequestEntity;
@@ -53,7 +54,8 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
                 .orElse(null);
         if (groupJoinFormEntity == null && groupJoinRequestCreateRequests != null && !groupJoinRequestCreateRequests.isEmpty())
             throw new AppException(ErrorCode.GROUP_JOIN_FORM_NOT_FOUND);
-        if (groupJoinFormEntity != null && (groupJoinRequestCreateRequests == null || groupJoinRequestCreateRequests.isEmpty()))
+        if (groupJoinFormEntity != null && groupJoinRequestRepository.existsByGroupJoinFormId(groupJoinFormEntity.getId()) &&
+                (groupJoinRequestCreateRequests == null || groupJoinRequestCreateRequests.isEmpty()))
             throw new AppException(ErrorCode.GROUP_JOIN_FORM_ANSWERS_REQUIRED);
 
         if (groupJoinFormEntity != null) {
@@ -110,7 +112,7 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
             });
         }
 
-        groupJoinRequestRepository.save(groupJoinRequestEntity);
+        GroupJoinRequestEntity groupJoinRequest = groupJoinRequestRepository.save(groupJoinRequestEntity);
 
         Set<Long> ownerAdminIds = groupMembershipRepository.findUserIdsByGroupIdAndRoleIn(
                 groupId, Set.of(GroupRole.OWNER, GroupRole.ADMIN));
@@ -121,6 +123,7 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
                                 .type(NotificationType.GROUP_JOIN_REQUEST_RECEIVED)
                                 .recipientId(ownerAdminId)
                                 .groupId(groupId)
+                                .groupJoinRequestId(groupJoinRequest.getId())
                                 .build()
                 )
         );
@@ -135,6 +138,26 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
         Page<GroupJoinRequestEntity> groupJoinRequestsPage = groupJoinRequestRepository
                 .findByGroupIdOrderBySubmittedAtAsc(groupId, pageable);
         return groupJoinRequestsPage.map(groupJoinRequestMapper::toResponse);
+    }
+
+    @Override
+    public PageResponse getRequestPage(Long currentUserId, Long groupId, Long requestId, Integer size) {
+        if (!groupMembershipRepository.existsByUserIdAndGroupIdAndRoleIn(
+                currentUserId, groupId, Set.of(GroupRole.OWNER, GroupRole.ADMIN)))
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+
+        GroupJoinRequestEntity groupJoinRequestEntity = groupJoinRequestRepository.findByIdAndGroupId(requestId, groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_JOIN_REQUEST_NOT_FOUND));
+
+        Long olderCount = groupJoinRequestRepository.countOlderGroupJoinRequests(
+                groupId,
+                requestId,
+                groupJoinRequestEntity.getSubmittedAt()
+        );
+        return PageResponse.builder()
+                .page((int) (olderCount / size))
+                .size(size)
+                .build();
     }
 
     @Transactional
@@ -167,17 +190,26 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
                 currentUserId, groupId, Set.of(GroupRole.OWNER, GroupRole.ADMIN)))
             throw new AppException(ErrorCode.UNAUTHORIZED);
 
-        groupJoinRequestRepository.delete(groupJoinRequestRepository.findByIdAndGroupId(requestId, groupId)
-                .orElseThrow(() -> new AppException(ErrorCode.GROUP_JOIN_REQUEST_NOT_FOUND)));
+        GroupJoinRequestEntity groupJoinRequestEntity = groupJoinRequestRepository.findByIdAndGroupId(requestId, groupId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_JOIN_REQUEST_NOT_FOUND));
+        groupJoinRequestRepository.delete(groupJoinRequestEntity);
     }
 
     @Transactional
     @Override
-    public void cancelGroupJoinRequest(Long currentUserId, Long groupId, Long requestId) {
-        groupJoinRequestRepository.delete(
-                groupJoinRequestRepository.findByIdAndGroupIdAndSenderId(requestId, groupId, currentUserId)
-                        .orElseThrow(() -> new AppException(ErrorCode.GROUP_JOIN_REQUEST_NOT_FOUND))
-        );
+    public void cancelGroupJoinRequest(Long currentUserId, Long groupId) {
+        GroupJoinRequestEntity groupJoinRequestEntity = groupJoinRequestRepository.findByGroupIdAndSenderId(groupId, currentUserId)
+                .orElseThrow(() -> new AppException(ErrorCode.GROUP_JOIN_REQUEST_NOT_FOUND));
+        groupJoinRequestRepository.delete(groupJoinRequestEntity);
+    }
+
+    @Override
+    public Long countGroupJoinRequests(Long currentUserId, Long groupId) {
+        if (!groupMembershipRepository.existsByUserIdAndGroupIdAndRoleIn(
+                currentUserId, groupId, Set.of(GroupRole.OWNER, GroupRole.ADMIN)))
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+
+        return groupJoinRequestRepository.countByGroupId(groupId);
     }
 
 }

@@ -94,6 +94,24 @@ const routes = [
         name: 'GroupDetail',
         component: () => import('@/views/GroupDetailView.vue'),
         meta: { requiresAuth: true }
+    },
+    {
+        path: '/groups/:groupId/join-form-questions/:formId',
+        name: 'GroupJoinFormQuestions',
+        component: () => import('@/views/GroupJoinFormQuestionsView.vue'),
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/groups/:groupId/join-requests',
+        name: 'GroupJoinRequests',
+        component: () => import('@/views/GroupJoinRequestsView.vue'),
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/groups/:groupId/join',
+        name: 'GroupJoinForm',
+        component: () => import('@/views/GroupJoinFormView.vue'),
+        meta: { requiresAuth: true }
     }
 ]
 

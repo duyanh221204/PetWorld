@@ -18,6 +18,8 @@ public class GroupJoinRequestResponse {
 
     String senderUsername;
 
+    String senderAvatar;
+
     Instant submittedAt;
 
 }

@@ -66,12 +66,14 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useNotifications } from '@/composables/useNotifications.js'
+import { groupJoinRequestApi } from '@/api/groupJoinRequest'
 import NotificationItem from './NotificationItem.vue'
 import LoadingSpinner from '../LoadingSpinner.vue'
 
 const route = useRoute()
+const router = useRouter()
 const { notifications, unreadCount, isLoading, error, fetchLatestNotifications, markAllAsRead, markAsRead } = useNotifications()
 
 const isOpen = ref(false)
@@ -94,9 +96,66 @@ const handleMarkAllRead = async () => {
 }
 
 const handleNotificationClick = async (notification) => {
+  console.log('[NotificationDropdown] Notification clicked:', {
+    type: notification.type,
+    groupId: notification.groupId,
+    groupJoinRequestId: notification.groupJoinRequestId
+  })
+  
   if (!notification.isRead)
     await markAsRead(notification.id)
+  
   closeDropdown()
+
+  if (notification.type === 'GROUP_JOIN_REQUEST_RECEIVED') {
+    try {
+      const pageResponse = await groupJoinRequestApi.getRequestPage(
+        notification.groupId,
+        notification.groupJoinRequestId,
+        100
+      )
+      
+      if (pageResponse.data.status === 200) {
+        const pageNum = pageResponse.data.data.page
+        const currentRoute = router.currentRoute.value
+
+        // Buộc reload nếu đã ở trang đó
+        if (currentRoute.name === 'GroupJoinRequests' && currentRoute.params.groupId === String(notification.groupId))
+          await router.push({
+            name: 'GroupJoinRequests',
+            params: { groupId: String(notification.groupId) },
+            query: { 
+              page: String(pageNum),
+              highlight: String(notification.groupJoinRequestId),
+              reload: String(Date.now()) // buộc reload bằng cách thêm query param thay đổi
+            }
+          })
+        else
+          await router.push({
+            name: 'GroupJoinRequests',
+            params: { groupId: String(notification.groupId) },
+            query: { 
+              page: String(pageNum),
+              highlight: String(notification.groupJoinRequestId)
+            }
+          })
+      }
+    } catch (error) {
+      await router.push({
+        name: 'GroupJoinRequests',
+        params: { groupId: String(notification.groupId) }
+      })
+    }
+  } else if (notification.type === 'GROUP_JOIN_REQUEST_ACCEPTED') {
+    const currentRoute = router.currentRoute.value
+    if (currentRoute.name === 'GroupDetail' && currentRoute.params.groupId === String(notification.groupId))
+      window.location.reload()
+    else
+      await router.push({
+        name: 'GroupDetail',
+        params: { groupId: String(notification.groupId) }
+      })
+  }
 }
 
 const handleRetry = async () => await fetchLatestNotifications(15)

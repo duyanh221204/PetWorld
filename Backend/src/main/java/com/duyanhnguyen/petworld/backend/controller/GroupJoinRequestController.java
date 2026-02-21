@@ -3,6 +3,7 @@ package com.duyanhnguyen.petworld.backend.controller;
 import com.duyanhnguyen.petworld.backend.dto.request.GroupJoinRequestCreateRequest;
 import com.duyanhnguyen.petworld.backend.dto.response.ApiResponse;
 import com.duyanhnguyen.petworld.backend.dto.response.GroupJoinRequestResponse;
+import com.duyanhnguyen.petworld.backend.dto.response.PageResponse;
 import com.duyanhnguyen.petworld.backend.service.GroupJoinRequestService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +53,20 @@ public class GroupJoinRequestController {
                 .build();
     }
 
+    @GetMapping("/page-of/{requestId}")
+    public ApiResponse<PageResponse> getRequestPage(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long groupId,
+            @PathVariable Long requestId,
+            @RequestParam(defaultValue = "100") Integer size
+    ) {
+        Long currentUserId = Long.parseLong(jwt.getSubject());
+        return ApiResponse.<PageResponse>builder()
+                .message("Group join request page retrieved successfully")
+                .data(groupJoinRequestService.getRequestPage(currentUserId, groupId, requestId, size))
+                .build();
+    }
+
     @PostMapping("/{requestId}/approve")
     public ApiResponse<Void> approveGroupJoinRequest(
             @AuthenticationPrincipal Jwt jwt,
@@ -78,16 +93,27 @@ public class GroupJoinRequestController {
                 .build();
     }
 
-    @DeleteMapping("/{requestId}/cancel")
+    @DeleteMapping("/cancel")
     public ApiResponse<Void> cancelGroupJoinRequest(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable Long groupId,
-            @PathVariable Long requestId
+            @PathVariable Long groupId
     ) {
         Long currentUserId = Long.parseLong(jwt.getSubject());
-        groupJoinRequestService.cancelGroupJoinRequest(currentUserId, groupId, requestId);
+        groupJoinRequestService.cancelGroupJoinRequest(currentUserId, groupId);
         return ApiResponse.<Void>builder()
                 .message("Group join request canceled successfully")
+                .build();
+    }
+
+    @GetMapping("/count")
+    public ApiResponse<Long> countGroupJoinRequests(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long groupId
+    ) {
+        Long currentUserId = Long.parseLong(jwt.getSubject());
+        return ApiResponse.<Long>builder()
+                .message("Group join request count retrieved successfully")
+                .data(groupJoinRequestService.countGroupJoinRequests(currentUserId, groupId))
                 .build();
     }
 

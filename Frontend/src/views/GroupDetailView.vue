@@ -21,12 +21,21 @@
 
             <div class="group-info">
               <h1 class="group-name">{{ group.name }}</h1>
-              <button @click="showMembers" class="members-button">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                </svg>
-                {{ group.memberCount }} {{ group.memberCount === 1 ? 'member' : 'members' }}
-              </button>
+              <div class="group-actions">
+                <button @click="showMembers" class="members-button">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                  </svg>
+                  {{ group.memberCount }} {{ group.memberCount === 1 ? 'member' : 'members' }}
+                </button>
+                <button v-if="isOwnerOrAdmin" @click="handleSettingsClick" class="settings-button">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                  Settings
+                </button>
+              </div>
             </div>
           </div>
 
@@ -51,7 +60,7 @@
 
             <div v-else-if="posts.length === 0" class="empty-posts">
               <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2H5a2 2 0 00-2 2v2M7 7h10"/>
               </svg>
               <p class="empty-text">No posts in this group yet</p>
             </div>
@@ -82,48 +91,78 @@
         </div>
       </div>
 
-      <aside v-if="group" class="group-right-sidebar">
-        <div class="sidebar-card">
-          <div v-if="group.description" class="sidebar-section">
-            <h3 class="sidebar-title">About</h3>
-            <p class="sidebar-text">{{ group.description }}</p>
-          </div>
-
-          <div v-if="group.currentUserRole" class="sidebar-section">
-            <p class="role-text">
-              You are {{ group.currentUserRole.toLowerCase() }} of the group
-            </p>
-            <button @click="handleLeaveGroup" class="action-btn leave-btn">
-              Leave Group
-            </button>
-          </div>
-
-          <div v-else class="sidebar-section">
-            <button
-              v-if="!group.isRequestedToJoin"
-              @click="handleJoinGroup"
-              class="action-btn join-btn"
-            >
-              Join Group
-            </button>
-            <button
-              v-else
-              @click="handleCancelRequest"
-              class="action-btn cancel-btn"
-            >
-              Cancel Join Request
-            </button>
-          </div>
-        </div>
-      </aside>
+      <GroupRightSidebar 
+        v-if="group" 
+        :groupId="groupId"
+        :group="group"
+        @join-group="handleJoinGroup"
+        @cancel-request="showCancelRequestModal = true"
+        @leave-group="handleLeaveGroup"
+      />
     </main>
 
     <AppFooter />
+
+    <GroupSettingsModal
+      :show="showSettingsModal"
+      :group="group"
+      @close="showSettingsModal = false"
+      @updated="handleGroupUpdated"
+      @deleted="handleGroupDeleted"
+    />
+
+    <Transition name="modal">
+      <div v-if="showCancelRequestModal" class="modal-overlay" @click="showCancelRequestModal = false">
+        <div class="modal-dialog" @click.stop>
+          <div class="modal-header">
+            <h3 class="modal-title">Cancel Join Request</h3>
+            <button @click="showCancelRequestModal = false" class="modal-close">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <p class="modal-text">Are you sure you want to cancel your join request to this group?</p>
+            
+            <div class="modal-actions">
+              <button type="button" @click="showCancelRequestModal = false" class="btn-secondary">No</button>
+              <button type="button" @click="handleCancelRequest" class="btn-danger">Yes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <Transition name="modal">
+      <div v-if="showJoinGroupModal" class="modal-overlay" @click="showJoinGroupModal = false">
+        <div class="modal-dialog" @click.stop>
+          <div class="modal-header">
+            <h3 class="modal-title">Join Group</h3>
+            <button @click="showJoinGroupModal = false" class="modal-close">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <p class="modal-text">Do you want to send a join request to this group?</p>
+            
+            <div class="modal-actions">
+              <button type="button" @click="showJoinGroupModal = false" class="btn-secondary">No</button>
+              <button type="button" @click="confirmJoinGroup" class="btn-primary">Yes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import defaultGroupCover from '@/assets/images/group-default-cover-image.png'
 import AppHeader from '@/components/layout/AppHeader.vue'
@@ -131,12 +170,18 @@ import AppFooter from '@/components/layout/AppFooter.vue'
 import LeftSidebar from '@/components/layout/sidebar/LeftSidebar.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import PostItem from '@/components/ui/PostItem.vue'
+import GroupSettingsModal from '@/components/ui/group/GroupSettingsModal.vue'
+import GroupRightSidebar from '@/components/ui/group/GroupRightSidebar.vue'
 import { groupApi } from '@/api/group'
 import { postApi } from '@/api/post'
 import { reactionApi } from '@/api/reaction'
+import { groupJoinRequestApi } from '@/api/groupJoinRequest'
+import { groupJoinFormApi } from '@/api/groupJoinForm'
+import { useNotifications } from '@/composables/useNotifications'
 
 const route = useRoute()
 const router = useRouter()
+const { notifications } = useNotifications()
 
 const group = ref(null)
 const posts = ref([])
@@ -145,8 +190,15 @@ const isLoadingPosts = ref(false)
 const currentPage = ref(0)
 const hasMorePosts = ref(true)
 const accessDenied = ref(false)
+const showSettingsModal = ref(false)
+const showCancelRequestModal = ref(false)
+const showJoinGroupModal = ref(false)
 
 const groupId = computed(() => parseInt(route.params.groupId))
+
+const isOwnerOrAdmin = computed(() => 
+  group.value?.currentUserRole === 'OWNER' || group.value?.currentUserRole === 'ADMIN'
+)
 
 const loadGroup = async () => {
   isLoadingGroup.value = true
@@ -244,19 +296,62 @@ const showMembers = () => {
   console.log('Show members')
 }
 
-const handleJoinGroup = () => {
-  // TODO: Implement join group
-  console.log('Join group')
+const handleSettingsClick = () => showSettingsModal.value = true
+
+const handleGroupUpdated = (updatedGroup) => group.value = updatedGroup
+
+const handleGroupDeleted = () => router.push({ name: 'Groups' })
+
+const handleJoinGroup = async () => {
+  try {
+    const response = await groupJoinFormApi.getActiveGroupJoinForm(groupId.value)
+    if (response.data.status === 200 && response.data.data) {
+      await router.push({name: 'GroupJoinForm', params: {groupId: groupId.value}})
+      return
+    }
+  } catch (error) {
+    if (error.response?.status !== 404) {
+      console.error('Error checking active form:', error)
+      alert('Failed to check join form. Please try again.')
+      return
+    }
+  }
+
+  showJoinGroupModal.value = true
 }
 
-const handleCancelRequest = () => {
-  // TODO: Implement cancel request
-  console.log('Cancel request')
+const confirmJoinGroup = async () => {
+  try {
+    const response = await groupJoinRequestApi.createGroupJoinRequest(groupId.value, null)
+    if (response.data.status === 200) {
+      await loadGroup()
+      showJoinGroupModal.value = false
+    } else
+      alert(response.data.message || 'Failed to send join request.')
+  } catch (err) {
+    console.error('Error creating join request:', err)
+    const errorMsg = err.response?.data?.message || 'Failed to send join request. Please try again.'
+    alert(errorMsg)
+  }
+}
+
+const handleCancelRequest = async () => {
+  try {
+    const response = await groupJoinRequestApi.cancelGroupJoinRequest(groupId.value)
+    if (response.data.status === 200) {
+      await loadGroup()
+      showCancelRequestModal.value = false
+    } else
+      alert(response.data.message || 'Failed to cancel join request.')
+  } catch (error) {
+    console.error('Error canceling request:', error)
+    alert(error.response?.data?.message || 'Failed to cancel join request. Please try again.')
+  }
 }
 
 const handleLeaveGroup = () => {
-  // TODO: Implement leave group
-  console.log('Leave group')
+  // TODO: Implement leave group when backend API is ready
+  alert('Leave group feature is not yet available. Please wait for backend implementation.')
 }
 
 const handleScroll = () => {
@@ -303,10 +398,6 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   @apply w-full h-full object-cover;
 }
 
-.cover-placeholder {
-  @apply w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300;
-}
-
 .group-info {
   @apply p-6;
 }
@@ -315,8 +406,16 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   @apply text-3xl font-bold text-gray-900 mb-3;
 }
 
+.group-actions {
+  @apply flex items-center gap-3 mt-4;
+}
+
 .members-button {
   @apply flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors;
+}
+
+.settings-button {
+  @apply flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium;
 }
 
 .create-post-section {
@@ -367,44 +466,68 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   @apply flex items-center justify-center py-16 text-gray-500 text-lg;
 }
 
-.group-right-sidebar {
-  @apply hidden xl:block fixed right-4 top-20 w-80;
-  max-width: 320px;
+.modal-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4;
 }
 
-.sidebar-card {
-  @apply bg-white rounded-xl shadow-sm p-6 sticky top-20 space-y-6;
+.modal-dialog {
+  @apply bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden;
 }
 
-.sidebar-section {
-  @apply space-y-3;
+.modal-header {
+  @apply flex items-center justify-between p-6 border-b border-gray-200;
 }
 
-.sidebar-title {
-  @apply text-lg font-bold text-gray-900;
+.modal-title {
+  @apply text-xl font-bold text-gray-900;
 }
 
-.sidebar-text {
-  @apply text-gray-700 leading-relaxed;
+.modal-close {
+  @apply text-gray-400 hover:text-gray-600 transition-colors;
 }
 
-.role-text {
-  @apply text-gray-700;
+.modal-body {
+  @apply p-6;
 }
 
-.action-btn {
-  @apply w-full px-4 py-2.5 rounded-lg font-medium transition-colors;
+.modal-text {
+  @apply text-gray-700 mb-6;
 }
 
-.join-btn {
-  @apply bg-primary-600 text-white hover:bg-primary-700;
+.modal-actions {
+  @apply flex items-center justify-end gap-3;
 }
 
-.cancel-btn {
-  @apply bg-yellow-600 text-white hover:bg-yellow-700;
+.btn-secondary {
+  @apply px-6 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors;
 }
 
-.leave-btn {
-  @apply bg-red-600 text-white hover:bg-red-700;
+.btn-primary {
+  @apply px-6 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors;
+}
+
+.btn-danger {
+  @apply px-6 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors;
+}
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-active .modal-dialog,
+.modal-leave-active .modal-dialog {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+.modal-enter-from .modal-dialog,
+.modal-leave-to .modal-dialog {
+  transform: scale(0.95);
+  opacity: 0;
 }
 </style>

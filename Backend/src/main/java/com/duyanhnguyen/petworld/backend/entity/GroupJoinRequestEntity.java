@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.aspectj.weaver.ast.Not;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
@@ -51,6 +52,11 @@ public class GroupJoinRequestEntity {
     @Builder.Default
     @OneToMany(mappedBy = "groupJoinRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     Set<GroupJoinRequestAnswerEntity> groupJoinRequestAnswers = new HashSet<>();
+
+    @JsonIgnore
+    @Builder.Default
+    @OneToMany(mappedBy = "groupJoinRequest", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    Set<NotificationEntity> notifications = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {
