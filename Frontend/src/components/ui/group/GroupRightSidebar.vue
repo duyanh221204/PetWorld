@@ -20,7 +20,7 @@
 
       <div v-if="currentGroup?.currentUserRole" class="sidebar-section">
         <p class="role-text">
-          You are a {{ currentGroup.currentUserRole.toLowerCase() }} of this group
+          You are {{ currentGroup.currentUserRole.toLowerCase() }} of the group
         </p>
         <button @click="handleLeaveGroup" class="action-btn leave-btn">
           Leave Group
@@ -72,22 +72,20 @@ const route = useRoute()
 const localGroup = ref(null)
 const joinRequestsCount = ref(0)
 
-// Use group from props if available, otherwise use localGroup
 const currentGroup = computed(() => props.group || localGroup.value)
 
 const isOwnerOrAdmin = computed(() =>
   currentGroup.value?.currentUserRole === 'OWNER' || currentGroup.value?.currentUserRole === 'ADMIN'
 )
 
-// Only load group if not provided via props
 const loadGroup = async () => {
-  if (props.group) return // Skip if group is provided via props
+  if (props.group)
+    return
   
   try {
     const response = await groupApi.getGroupById(props.groupId)
-    if (response.data.status === 200) {
+    if (response.data.status === 200)
       localGroup.value = response.data.data
-    }
   } catch (error) {
     console.error('Error loading group:', error)
   }
@@ -106,20 +104,16 @@ const loadJoinRequestsCount = async () => {
   }
 }
 
-// Watch for group prop changes (when provided via props from parent)
 watch(() => props.group, (newGroup) => {
-  if (newGroup && isOwnerOrAdmin.value) {
+  if (newGroup && isOwnerOrAdmin.value)
     loadJoinRequestsCount()
-  }
 }, { immediate: true })
 
-// Load group data if not provided via props
 watch(() => props.groupId, async (newGroupId) => {
   if (newGroupId && !props.group) {
     await loadGroup()
-    if (isOwnerOrAdmin.value) {
+    if (isOwnerOrAdmin.value)
       await loadJoinRequestsCount()
-    }
   }
 }, { immediate: true })
 

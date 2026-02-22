@@ -15,6 +15,7 @@
     <div class="notification-content">
       <p class="notification-text">
         <span class="sender-name">{{ senderName }}</span>
+        {{ ' ' }}
         <template v-if="notification.type === 'GROUP_JOIN_REQUEST_RECEIVED' && notification.groupName">
           requested to join <span class="group-name">{{ notification.groupName }}</span>
         </template>

@@ -86,9 +86,12 @@ export const useNotifications = () => {
     }
 
     const addNotification = (notification) => {
-        notifications.value = [notification, ...notifications.value]
-        if (!notification.isRead)
-            ++unreadCount.value
+        const exists = notifications.value.some(n => n.id === notification.id)
+        if (!exists) {
+            notifications.value = [notification, ...notifications.value]
+            if (!notification.isRead)
+                ++unreadCount.value
+        }
     }
 
     let notificationSubscription = null

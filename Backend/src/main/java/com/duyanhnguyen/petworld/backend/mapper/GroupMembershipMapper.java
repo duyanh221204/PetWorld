@@ -12,6 +12,8 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public interface GroupMembershipMapper {
 
     @Mapping(source = "user.id", target = "userId")
+    @Mapping(source = "user.username", target = "username")
+    @Mapping(source = "user.avatar", target = "userAvatar")
     @Mapping(source = "group.id", target = "groupId")
     GroupMembershipResponse toResponse(GroupMembershipEntity entity);
 
