@@ -312,6 +312,11 @@ const fetchComments = async (page = 0) => {
       comments.value = data.content || []
       totalPages.value = data.totalPages || 0
       currentPage.value = page
+
+      for (const commentId in expandedReplies.value) {
+        if (expandedReplies.value[commentId] && replies.value[commentId])
+          await fetchReplies(parseInt(commentId))
+      }
     }
   } catch (err) {
     console.error('Error fetching comments:', err)
@@ -477,9 +482,8 @@ const handleSubmitComment = async () => {
 
         await nextTick()
         const newReplyElement = document.getElementById(`comment-${response.data.data.id}`)
-        if (newReplyElement) {
+        if (newReplyElement)
           newReplyElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        }
       }
     } else {
       response = await commentApi.createComment(props.postId, content)
@@ -500,7 +504,6 @@ const handleSubmitComment = async () => {
   }
 }
 
-// highlight comment
 const scrollToComment = async (commentId) => {
   await nextTick()
   

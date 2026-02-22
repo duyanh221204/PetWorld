@@ -123,7 +123,11 @@
         </div>
       </div>
 
-      <RightSidebar />
+      <RightSidebar v-if="!isGroupPost" />
+      <GroupRightSidebar 
+        v-else-if="groupId"
+        :groupId="groupId"
+      />
     </main>
 
     <Transition name="modal">
@@ -181,6 +185,7 @@ import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import LeftSidebar from '@/components/layout/sidebar/LeftSidebar.vue'
 import RightSidebar from '@/components/layout/sidebar/RightSidebar.vue'
+import GroupRightSidebar from '@/components/ui/group/GroupRightSidebar.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import { postApi } from '@/api/post'
 import { uploadApi } from '@/api/upload'

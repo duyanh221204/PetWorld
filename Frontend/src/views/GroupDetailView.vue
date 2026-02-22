@@ -28,13 +28,6 @@
                   </svg>
                   {{ group.memberCount }} {{ group.memberCount === 1 ? 'member' : 'members' }}
                 </button>
-                <button v-if="isOwnerOrAdmin" @click="handleSettingsClick" class="settings-button">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  </svg>
-                  Settings
-                </button>
               </div>
             </div>
           </div>
@@ -45,6 +38,13 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
               </svg>
               Create Post
+            </button>
+            <button v-if="isOwnerOrAdmin" @click="handleSettingsClick" class="settings-btn">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              Settings
             </button>
           </div>
 
@@ -111,6 +111,21 @@
       @deleted="handleGroupDeleted"
     />
 
+    <GroupMembersModal
+      :show="showMembersModal"
+      :groupId="groupId"
+      :currentUserRole="group?.currentUserRole"
+      @close="showMembersModal = false"
+      @member-removed="handleMemberRemoved"
+    />
+
+    <TransferOwnershipModal
+      :show="showTransferOwnershipModal"
+      :groupId="groupId"
+      @close="showTransferOwnershipModal = false"
+      @transferred="handleOwnershipTransferred"
+    />
+
     <Transition name="modal">
       <div v-if="showCancelRequestModal" class="modal-overlay" @click="showCancelRequestModal = false">
         <div class="modal-dialog" @click.stop>
@@ -158,6 +173,30 @@
         </div>
       </div>
     </Transition>
+
+    <Transition name="modal">
+      <div v-if="showLeaveGroupModal" class="modal-overlay" @click="showLeaveGroupModal = false">
+        <div class="modal-dialog" @click.stop>
+          <div class="modal-header">
+            <h3 class="modal-title">Leave Group</h3>
+            <button @click="showLeaveGroupModal = false" class="modal-close">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <p class="modal-text">Are you sure you want to leave this group?</p>
+            
+            <div class="modal-actions">
+              <button type="button" @click="showLeaveGroupModal = false" class="btn-secondary">Cancel</button>
+              <button type="button" @click="confirmLeaveGroup" class="btn-danger">Leave Group</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -171,17 +210,18 @@ import LeftSidebar from '@/components/layout/sidebar/LeftSidebar.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import PostItem from '@/components/ui/PostItem.vue'
 import GroupSettingsModal from '@/components/ui/group/GroupSettingsModal.vue'
+import GroupMembersModal from '@/components/ui/group/GroupMembersModal.vue'
+import TransferOwnershipModal from '@/components/ui/group/TransferOwnershipModal.vue'
 import GroupRightSidebar from '@/components/ui/group/GroupRightSidebar.vue'
 import { groupApi } from '@/api/group'
 import { postApi } from '@/api/post'
 import { reactionApi } from '@/api/reaction'
 import { groupJoinRequestApi } from '@/api/groupJoinRequest'
 import { groupJoinFormApi } from '@/api/groupJoinForm'
-import { useNotifications } from '@/composables/useNotifications'
+import { groupMembershipApi } from '@/api/groupMembership'
 
 const route = useRoute()
 const router = useRouter()
-const { notifications } = useNotifications()
 
 const group = ref(null)
 const posts = ref([])
@@ -191,6 +231,9 @@ const currentPage = ref(0)
 const hasMorePosts = ref(true)
 const accessDenied = ref(false)
 const showSettingsModal = ref(false)
+const showMembersModal = ref(false)
+const showTransferOwnershipModal = ref(false)
+const showLeaveGroupModal = ref(false)
 const showCancelRequestModal = ref(false)
 const showJoinGroupModal = ref(false)
 
@@ -291,10 +334,7 @@ const handleToggleReaction = async (postId) => {
   }
 }
 
-const showMembers = () => {
-  // TODO: Implement show members modal
-  console.log('Show members')
-}
+const showMembers = () => showMembersModal.value = true
 
 const handleSettingsClick = () => showSettingsModal.value = true
 
@@ -350,9 +390,29 @@ const handleCancelRequest = async () => {
 }
 
 const handleLeaveGroup = () => {
-  // TODO: Implement leave group when backend API is ready
-  alert('Leave group feature is not yet available. Please wait for backend implementation.')
+  if (group.value?.currentUserRole === 'OWNER')
+    showTransferOwnershipModal.value = true
+  else
+    showLeaveGroupModal.value = true
 }
+
+const confirmLeaveGroup = async () => {
+  try {
+    const response = await groupMembershipApi.leaveGroup(groupId.value)
+    if (response.data.status === 200) {
+      showLeaveGroupModal.value = false
+      await router.push({ name: 'Groups' })
+    } else
+      alert(response.data.message || 'Failed to leave group.')
+  } catch (error) {
+    console.error('Error leaving group:', error)
+    alert(error.response?.data?.message || 'Failed to leave group. Please try again.')
+  }
+}
+
+const handleMemberRemoved = async () => await loadGroup()
+
+const handleOwnershipTransferred = () => router.push({ name: 'Groups' })
 
 const handleScroll = () => {
   if (accessDenied.value)
@@ -414,16 +474,16 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   @apply flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors;
 }
 
-.settings-button {
-  @apply flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium;
-}
-
 .create-post-section {
-  @apply bg-white rounded-xl shadow-sm p-4;
+  @apply bg-white rounded-xl shadow-sm p-4 flex items-center gap-3;
 }
 
 .create-post-btn {
-  @apply w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium;
+  @apply flex items-center justify-center gap-2 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium;
+}
+
+.settings-btn {
+  @apply flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium;
 }
 
 .posts-section {

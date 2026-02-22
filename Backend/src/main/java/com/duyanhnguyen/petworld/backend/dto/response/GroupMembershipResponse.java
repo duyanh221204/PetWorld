@@ -19,6 +19,8 @@ public class GroupMembershipResponse {
 
     String username;
 
+    String userAvatar;
+
     GroupRole role;
 
 }
