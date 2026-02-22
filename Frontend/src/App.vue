@@ -6,7 +6,6 @@
 
 <script setup>
 import { useNotifications } from '@/composables/useNotifications'
-
 useNotifications()
 </script>
 

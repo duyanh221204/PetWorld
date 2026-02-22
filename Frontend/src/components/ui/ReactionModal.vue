@@ -3,7 +3,7 @@
     <div v-if="isOpen" class="modal-overlay" @click="handleOverlayClick">
       <div class="modal-container" @click.stop>
         <div class="modal-header">
-          <h2 class="modal-title">Reactions ({{ totalElements }})</h2>
+          <h2 class="modal-title">Reactions</h2>
           <div class="header-actions">
             <button @click="handleRefresh" class="icon-btn" title="Refresh">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,7 +107,6 @@ const isLoading = ref(false)
 const error = ref(null)
 const currentPage = ref(0)
 const totalPages = ref(0)
-const totalElements = ref(0)
 const pageSize = 100
 
 const fetchReactions = async (page = 0) => {
@@ -120,7 +119,6 @@ const fetchReactions = async (page = 0) => {
       const data = response.data.data
       reactions.value = data.content || []
       totalPages.value = data.totalPages || 0
-      totalElements.value = data.totalElements || 0
       currentPage.value = page
     }
   } catch (err) {

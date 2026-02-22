@@ -3,7 +3,7 @@
     <div v-if="isOpen" class="modal-overlay" @click="handleOverlayClick">
       <div class="modal-container" @click.stop>
         <div class="modal-header">
-          <h2 class="modal-title">Comments ({{ totalElements }})</h2>
+          <h2 class="modal-title">Comments</h2>
           <div class="header-actions">
             <button @click="handleRefresh" class="icon-btn" title="Refresh">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -283,7 +283,6 @@ const isLoading = ref(false)
 const error = ref(null)
 const currentPage = ref(0)
 const totalPages = ref(0)
-const totalElements = ref(0)
 const pageSize = 50
 
 const newComment = ref('')
@@ -312,7 +311,6 @@ const fetchComments = async (page = 0) => {
       const data = response.data.data
       comments.value = data.content || []
       totalPages.value = data.totalPages || 0
-      totalElements.value = data.totalElements || 0
       currentPage.value = page
     }
   } catch (err) {
@@ -435,8 +433,6 @@ const confirmDelete = async () => {
     if (response.data.status === 200) {
       showDeleteModal.value = false
       deletingComment.value = null
-
-      totalElements.value = Math.max(0, totalElements.value - 1)
 
       emit('commentDeleted')
 
