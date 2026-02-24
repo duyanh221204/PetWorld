@@ -1,5 +1,6 @@
 package com.duyanhnguyen.petworld.backend.event;
 
+import com.duyanhnguyen.petworld.backend.dto.response.NotificationResponse;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,6 +11,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class NotificationCreateEvent {
 
-    Long notificationId;
+    NotificationResponse notificationResponse;
 
 }

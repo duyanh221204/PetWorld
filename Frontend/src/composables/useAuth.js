@@ -6,6 +6,7 @@ const user = ref(null)
 
 export const useAuth = () => {
     const isAuthenticated = computed(() => !!accessToken.value && !!user.value)
+    const userId = computed(() => user.value?.id || null)
 
     const login = async (credentials) => {
         try {
@@ -52,6 +53,7 @@ export const useAuth = () => {
     return {
         accessToken,
         user,
+        userId,
         isAuthenticated,
         login,
         refreshAccessToken,

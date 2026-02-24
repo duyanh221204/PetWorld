@@ -98,28 +98,27 @@ export const useNotifications = () => {
 
     const subscribeToNotifications = async () => {
         // Nếu đã subscribe rồi, không subscribe lại
-        if (notificationSubscription) {
-            console.log('Already subscribed to notifications')
+        if (notificationSubscription)
             return
-        }
 
         if (!ws.isConnected.value) {
-            console.warn('WebSocket not connected, attempting to connect...')
             try {
                 await ws.connect()
+                // đợi một chút để kết nối ổn định trước khi subscribe
+                await new Promise(resolve => setTimeout(resolve, 150))
                 doSubscribe()
             } catch (err) {
-                console.error('Failed to connect for notifications:', err)
+                console.error('[useNotifications] Failed to connect WebSocket:', err)
             }
-        } else
+        } else {
+            await new Promise(resolve => setTimeout(resolve, 50))
             doSubscribe()
+        }
     }
 
     const doSubscribe = () => {
-        notificationSubscription = ws.subscribe('/user/queue/notifications', (notification) => {
-            console.log('Received notification:', notification)
-            addNotification(notification)
-        })
+        notificationSubscription = ws.subscribe('/user/queue/notifications', (notification) =>
+            addNotification(notification))
     }
 
     // khởi tạo sau khi đăng nhập

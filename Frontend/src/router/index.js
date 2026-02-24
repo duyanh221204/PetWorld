@@ -112,6 +112,12 @@ const routes = [
         name: 'GroupJoinForm',
         component: () => import('@/views/GroupJoinFormView.vue'),
         meta: { requiresAuth: true }
+    },
+    {
+        path: '/chats/:chatId?',
+        name: 'Chats',
+        component: () => import('@/views/ChatsView.vue'),
+        meta: { requiresAuth: true }
     }
 ]
 

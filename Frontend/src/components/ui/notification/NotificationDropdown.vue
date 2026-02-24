@@ -180,10 +180,6 @@ watch(() => route.path, () => closeDropdown())
   @apply relative p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors;
 }
 
-.notification-button.has-unread {
-  @apply text-primary-600;
-}
-
 .notification-icon {
   @apply w-6 h-6;
 }

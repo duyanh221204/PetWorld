@@ -1,6 +1,6 @@
 package com.duyanhnguyen.petworld.backend.dto.response;
 
-import com.duyanhnguyen.petworld.backend.enums.ChatType;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -10,17 +10,24 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ChatResponse {
 
     Long id;
 
-    ChatType type;
+    Long otherUserId;
 
     String name;
 
     String avatar;
 
     Instant lastMessagedAt;
+
+    String lastMessagePreview;
+
+    Long lastSenderId;
+
+    Boolean hasUnread;
 
 }
