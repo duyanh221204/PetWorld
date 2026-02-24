@@ -62,9 +62,10 @@ public enum ErrorCode {
     REQUIRED_GROUP_JOIN_FORM_ANSWER_MISSING("Required group join form answer is missing", HttpStatus.BAD_REQUEST),
     DUPLICATED_GROUP_JOIN_FORM_QUESTIONS("Duplicated group join form questions in the answers", HttpStatus.BAD_REQUEST),
     GROUP_JOIN_REQUEST_NOT_FOUND("Group join request not found", HttpStatus.NOT_FOUND),
-    INVALID_CHAT_TYPE("Invalid chat type", HttpStatus.BAD_REQUEST),
-    CHAT_NAME_REQUIRED("Chat name is required", HttpStatus.BAD_REQUEST),
     CHAT_NOT_FOUND("Chat not found", HttpStatus.NOT_FOUND),
+    CHAT_RECIPIENT_ID_REQUIRED("Chat recipient ID is required", HttpStatus.BAD_REQUEST),
+    CHAT_MESSAGE_CONTENT_REQUIRED("Chat message content is required", HttpStatus.BAD_REQUEST),
+    INVALID_CHAT_MESSAGE("Invalid chat message", HttpStatus.BAD_REQUEST),
     ;
 
     String message;

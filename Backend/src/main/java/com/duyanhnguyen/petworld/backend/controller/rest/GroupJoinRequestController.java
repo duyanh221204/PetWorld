@@ -1,4 +1,4 @@
-package com.duyanhnguyen.petworld.backend.controller;
+package com.duyanhnguyen.petworld.backend.controller.rest;
 
 import com.duyanhnguyen.petworld.backend.dto.request.GroupJoinRequestCreateRequest;
 import com.duyanhnguyen.petworld.backend.dto.response.ApiResponse;

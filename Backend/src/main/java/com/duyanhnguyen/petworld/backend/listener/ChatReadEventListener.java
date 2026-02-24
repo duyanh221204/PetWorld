@@ -1,6 +1,7 @@
 package com.duyanhnguyen.petworld.backend.listener;
 
-import com.duyanhnguyen.petworld.backend.event.NotificationCreateEvent;
+import com.duyanhnguyen.petworld.backend.dto.payload.ChatReadPayload;
+import com.duyanhnguyen.petworld.backend.event.ChatReadEvent;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -12,16 +13,16 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class NotificationCreateEventListener {
+public class ChatReadEventListener {
 
     SimpMessagingTemplate simpMessagingTemplate;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(NotificationCreateEvent notificationCreateEvent) {
+    public void handle(ChatReadEvent chatReadEvent) {
         simpMessagingTemplate.convertAndSendToUser(
-                Long.toString(notificationCreateEvent.getNotificationResponse().getRecipientId()),
-                "/queue/notifications",
-                notificationCreateEvent.getNotificationResponse()
+                Long.toString(chatReadEvent.getToUserId()),
+                "/queue/chats/read",
+                new ChatReadPayload(chatReadEvent.getChatId(), chatReadEvent.getReaderId())
         );
     }
 

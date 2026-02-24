@@ -36,8 +36,9 @@ public class ESPostServiceImpl implements ESPostService {
     }
 
     @Override
-    public List<Long> getPostIdsForNewsFeedByKeyword(String keyword, Pageable pageable) {
-        Sort sort = Sort.by("_score").descending().and(Sort.by("createdAt").descending());
+    public List<Long> searchByKeyword(String keyword, Pageable pageable) {
+        Sort sort = Sort.by("_score").descending().and(Sort.by("createdAt").descending())
+                .and(Sort.by("id").descending());
         Pageable esPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
         Page<ESPostDocument> esPostsPage = esPostRepository.searchByContent(keyword, esPageable);
@@ -45,8 +46,9 @@ public class ESPostServiceImpl implements ESPostService {
     }
 
     @Override
-    public List<Long> getPostIdsForGroupByKeyword(String keyword, Long groupId, Pageable pageable) {
-        Sort sort = Sort.by("_score").descending().and(Sort.by("createdAt").descending());
+    public List<Long> searchByKeywordInGroup(String keyword, Long groupId, Pageable pageable) {
+        Sort sort = Sort.by("_score").descending().and(Sort.by("createdAt").descending())
+                .and(Sort.by("id").descending());
         Pageable esPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
         Page<ESPostDocument> esPostsPage = esPostRepository.searchByContentAndGroupId(keyword, groupId, esPageable);

@@ -1,6 +1,5 @@
 package com.duyanhnguyen.petworld.backend.entity;
 
-import com.duyanhnguyen.petworld.backend.enums.ChatType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
@@ -29,27 +28,30 @@ public class ChatEntity {
     @Column(name = "id")
     Long id;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false)
-    Instant createdAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user1_id", referencedColumnName = "id", nullable = false)
+    UserEntity user1;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "chat_type", nullable = false)
-    ChatType type;
-
-    @Column(name = "name")
-    String name;
-
-    @Column(name = "avatar")
-    String avatar;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user2_id", referencedColumnName = "id", nullable = false)
+    UserEntity user2;
 
     @Column(name = "last_messaged_at", nullable = false)
     Instant lastMessagedAt;
 
-    @JsonIgnore
+    @Column(name = "last_message_preview", nullable = false, columnDefinition = "TEXT")
+    String lastMessagePreview;
+
+    @Column(name = "last_sender_id", nullable = false)
+    Long lastSenderId;
+
     @Builder.Default
-    @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true)
-    Set<ChatParticipantEntity> chatParticipants = new HashSet<>();
+    @Column(name = "user1_has_unread", nullable = false)
+    Boolean user1HasUnread = false;
+
+    @Builder.Default
+    @Column(name = "user2_has_unread", nullable = false)
+    Boolean user2HasUnread = false;
 
     @JsonIgnore
     @Builder.Default

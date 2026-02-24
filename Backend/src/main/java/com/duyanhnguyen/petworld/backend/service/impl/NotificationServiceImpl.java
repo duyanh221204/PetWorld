@@ -78,7 +78,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         NotificationResponse notificationResponse = notificationMapper.toResponse(notificationRepository.save(notificationEntity));
-        applicationEventPublisher.publishEvent(new NotificationCreateEvent(notificationResponse.getId()));
+        applicationEventPublisher.publishEvent(new NotificationCreateEvent(notificationResponse));
     }
 
     @Override

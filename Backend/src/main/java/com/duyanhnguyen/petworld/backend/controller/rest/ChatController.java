@@ -1,8 +1,8 @@
-package com.duyanhnguyen.petworld.backend.controller;
+package com.duyanhnguyen.petworld.backend.controller.rest;
 
-import com.duyanhnguyen.petworld.backend.dto.request.GroupChatCreateRequest;
 import com.duyanhnguyen.petworld.backend.dto.response.ApiResponse;
 import com.duyanhnguyen.petworld.backend.dto.response.ChatResponse;
+import com.duyanhnguyen.petworld.backend.service.ChatMessageService;
 import com.duyanhnguyen.petworld.backend.service.ChatService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class ChatController {
 
     ChatService chatService;
+    ChatMessageService chatMessageService;
 
     @GetMapping
     public ApiResponse<Page<ChatResponse>> getAllChats(
@@ -37,15 +38,24 @@ public class ChatController {
                 .build();
     }
 
-    @PostMapping("/groups")
-    public ApiResponse<ChatResponse> createGroupChat(
+    @GetMapping("/unread-count")
+    public ApiResponse<Long> getUnreadCount(@AuthenticationPrincipal Jwt jwt) {
+        Long currentUserId = Long.parseLong(jwt.getSubject());
+        return ApiResponse.<Long>builder()
+                .message("Unread chat count retrieved successfully")
+                .data(chatService.getUnreadCount(currentUserId))
+                .build();
+    }
+
+    @PutMapping("/{chatId}/read")
+    public ApiResponse<Void> markAsRead(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestBody @Valid GroupChatCreateRequest groupChatCreateRequest
+            @PathVariable Long chatId
     ) {
         Long currentUserId = Long.parseLong(jwt.getSubject());
-        return ApiResponse.<ChatResponse>builder()
-                .message("Group chat created successfully")
-                .data(chatService.createGroupChat(currentUserId, groupChatCreateRequest))
+        chatMessageService.markAsRead(currentUserId, chatId);
+        return ApiResponse.<Void>builder()
+                .message("Chat marked as read successfully")
                 .build();
     }
 

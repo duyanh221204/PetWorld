@@ -12,20 +12,22 @@ import java.time.Instant;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ChatResponse {
+public class ChatMessageResponse {
 
     Long id;
 
-    String name;
+    Long chatId;
 
-    String avatar;
+    String content;
 
-    Instant lastMessagedAt;
+    Instant createdAt;
 
-    String lastMessagePreview;
+    Boolean isRead;
 
-    Long lastSenderId;
+    Long senderId;
 
-    Boolean hasUnread;
+    Long senderUsername;
+
+    String senderAvatar;
 
 }

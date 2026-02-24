@@ -1,5 +1,6 @@
 package com.duyanhnguyen.petworld.backend.elasticsearch.service.impl;
 
+import com.duyanhnguyen.petworld.backend.elasticsearch.document.ESUserDocument;
 import com.duyanhnguyen.petworld.backend.elasticsearch.mapper.ESUserMapper;
 import com.duyanhnguyen.petworld.backend.elasticsearch.repository.ESUserRepository;
 import com.duyanhnguyen.petworld.backend.elasticsearch.service.ESUserService;
@@ -8,7 +9,13 @@ import com.duyanhnguyen.petworld.backend.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +33,16 @@ public class ESUserServiceImpl implements ESUserService {
             esUserRepository.save(esUserMapper.toDocument(userEntity));
         else
             esUserRepository.deleteById(userId);
+    }
+
+    @Override
+    public List<Long> searchByKeyword(String keyword, Pageable pageable) {
+        Sort sort = Sort.by("_score").descending().and(Sort.by("usernameSort").ascending())
+                .and(Sort.by("id").descending());
+        Pageable esPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        Page<ESUserDocument> esUsersPage = esUserRepository.searchByUsername(keyword, pageable);
+        return esUsersPage.map(ESUserDocument::getId).getContent();
     }
 
 }

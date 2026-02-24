@@ -21,4 +21,7 @@ public class ESUserDocument {
     @Field(type = FieldType.Text)
     String username;
 
+    @Field(type = FieldType.Keyword)
+    String usernameSort;
+
 }
