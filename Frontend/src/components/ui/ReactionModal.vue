@@ -88,6 +88,7 @@ import { ref, watch } from 'vue'
 import { reactionApi } from '@/api/reaction'
 import LoadingSpinner from './LoadingSpinner.vue'
 import defaultAvatar from '@/assets/images/default-avatar.png'
+import { formatTime } from '@/utils/formatTime'
 
 const props = defineProps({
   isOpen: {
@@ -139,41 +140,6 @@ const handleRefresh = async () => await fetchReactions(currentPage.value)
 const close = () => emit('close')
 
 const handleOverlayClick = () => close()
-
-const formatTime = (timestamp) => {
-  if (!timestamp)
-    return ''
-  
-  try {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diff = now - date
-    const seconds = Math.floor(diff / 1000)
-    const minutes = Math.floor(seconds / 60)
-    const hours = Math.floor(minutes / 60)
-    const days = Math.floor(hours / 24)
-
-    if (days > 7) {
-      return date.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    } else if (days > 0) {
-      return `${days}d ago`
-    } else if (hours > 0) {
-      return `${hours}h ago`
-    } else if (minutes > 0) {
-      return `${minutes}m ago`
-    } else {
-      return 'Just now'
-    }
-  } catch (err) {
-    return ''
-  }
-}
 
 watch(() => props.isOpen, (isOpen) => {
   if (isOpen)
