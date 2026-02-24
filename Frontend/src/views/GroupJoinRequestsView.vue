@@ -113,6 +113,7 @@ import GroupRightSidebar from '@/components/ui/group/GroupRightSidebar.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import GroupJoinRequestModal from '@/components/ui/group/GroupJoinRequestModal.vue'
 import { groupJoinRequestApi } from '@/api/groupJoinRequest'
+import { formatTime } from '@/utils/formatTime'
 
 const route = useRoute()
 const router = useRouter()
@@ -195,39 +196,6 @@ const handleRejected = (requestId) => {
 
   if (groupSidebarRef.value)
     groupSidebarRef.value.loadJoinRequestsCount()
-}
-
-const formatTime = (timestamp) => {
-  if (!timestamp)
-    return ''
-
-  try {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diff = now - date
-    const seconds = Math.floor(diff / 1000)
-    const minutes = Math.floor(seconds / 60)
-    const hours = Math.floor(minutes / 60)
-    const days = Math.floor(hours / 24)
-
-    if (days > 365) {
-      const years = Math.floor(days / 365)
-      return `${years} ${years === 1 ? 'year' : 'years'} ago`
-    }
-    if (days > 30) {
-      const months = Math.floor(days / 30)
-      return `${months} ${months === 1 ? 'month' : 'months'} ago`
-    }
-    if (days > 0)
-      return `${days} ${days === 1 ? 'day' : 'days'} ago`
-    if (hours > 0)
-      return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`
-    if (minutes > 0)
-      return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`
-    return 'Just now'
-  } catch (e) {
-    return ''
-  }
 }
 
 const goBack = () => router.push({ name: 'GroupDetail', params: { groupId: groupId.value } })

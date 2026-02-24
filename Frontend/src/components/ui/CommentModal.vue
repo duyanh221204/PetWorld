@@ -246,6 +246,7 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { commentApi } from '@/api/comment.js'
 import { useAuth } from '@/composables/useAuth.js'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
+import { formatTime } from '@/utils/formatTime'
 
 const props = defineProps({
   isOpen: {
@@ -552,39 +553,6 @@ const handleNotificationNavigation = async () => {
 const close = () => emit('close')
 
 const handleOverlayClick = () => close()
-
-const formatTime = (timestamp) => {
-  if (!timestamp)
-    return ''
-  
-  try {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diff = now - date
-    const seconds = Math.floor(diff / 1000)
-    const minutes = Math.floor(seconds / 60)
-    const hours = Math.floor(minutes / 60)
-    const days = Math.floor(hours / 24)
-
-    if (days > 7)
-      return date.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    if (days > 0)
-      return `${days}d ago`
-    if (hours > 0)
-      return `${hours}h ago`
-    if (minutes > 0)
-      return `${minutes}m ago`
-    return 'Just now'
-  } catch (e) {
-    return ''
-  }
-}
 
 watch(() => props.isOpen, async (isOpen) => {
   if (isOpen) {

@@ -190,6 +190,7 @@ import { postApi } from '@/api/post.js'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import ReactionModal from '@/components/ui/ReactionModal.vue'
 import CommentModal from '@/components/ui/CommentModal.vue'
+import { formatTime } from '@/utils/formatTime'
 
 const props = defineProps({
   post: {
@@ -217,6 +218,7 @@ const props = defineProps({
 const emit = defineEmits(['refresh', 'toggleReaction', 'delete', 'commentModalOpened'])
 
 const router = useRouter()
+
 const { user } = useAuth()
 
 const showMenu = ref(false)
@@ -325,37 +327,6 @@ const goToProfile = () => {
 const goToGroup = () => {
   if (props.post.groupId)
     router.push({ name: 'GroupDetail', params: { groupId: props.post.groupId } })
-}
-
-const formatTime = (timestamp) => {
-  if (!timestamp)
-    return ''
-
-  const date = new Date(timestamp)
-  const now = new Date()
-  const diff = now - date
-  const seconds = Math.floor(diff / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const hours = Math.floor(minutes / 60)
-  const days = Math.floor(hours / 24)
-
-  if (days > 7) {
-    return date.toLocaleString('en-US', {
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  } else if (days > 0) {
-    return `${days}d ago`
-  } else if (hours > 0) {
-    return `${hours}h ago`
-  } else if (minutes > 0) {
-    return `${minutes}m ago`
-  } else {
-    return 'Just now'
-  }
 }
 
 const handleClickOutside = (event) => {

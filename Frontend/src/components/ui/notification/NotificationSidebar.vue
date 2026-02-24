@@ -1,7 +1,6 @@
 <template>
   <div class="notification-sidebar">
     <div class="sidebar-body">
-      <!-- Notifications Section -->
       <div class="section">
         <button 
           @click="toggleNotifications" 
@@ -51,7 +50,6 @@
         </transition>
       </div>
 
-      <!-- Recent Messages Section -->
       <div class="section">
         <button 
           @click="toggleMessages" 
@@ -193,9 +191,7 @@ const handleMessageClick = async (chat) => {
   })
 }
 
-const handleRetryNotifications = async () => {
-  await fetchLatestNotifications(3)
-}
+const handleRetryNotifications = async () => await fetchLatestNotifications(3)
 
 onMounted(async () => {
   if (notifications.value.length === 0)

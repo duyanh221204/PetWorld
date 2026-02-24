@@ -69,28 +69,26 @@ const formatTime = (timestamp) => {
   
   const date = new Date(timestamp)
   const now = new Date()
-
-  const isToday = date.toDateString() === now.toDateString()
-
-  const yesterday = new Date(now)
-  yesterday.setDate(yesterday.getDate() - 1)
-  const isYesterday = date.toDateString() === yesterday.toDateString()
-  
   const timeString = date.toLocaleTimeString('en-US', { 
     hour: '2-digit', 
     minute: '2-digit',
     hour12: false 
   })
-  
-  if (isToday)
+
+  if (date.toDateString() === now.toDateString())
     return timeString
-  else if (isYesterday)
+
+  const yesterday = new Date(now)
+  yesterday.setDate(yesterday.getDate() - 1)
+  if (date.toDateString() === yesterday.toDateString())
     return `Yesterday ${timeString}`
-  else {
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    return `${monthNames[date.getMonth()]} ${date.getDate()}, ${timeString}`
-  }
+
+  const dateString = date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+  })
+  return `${dateString}, ${timeString}`
 }
 </script>
 

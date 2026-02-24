@@ -34,7 +34,6 @@
           :target-root-comment-id="targetRootCommentId"
           @refresh="fetchPost"
           @toggle-reaction="handleToggleReaction"
-          @comment-modal-opened="handleCommentModalOpened"
         />
       </div>
 
@@ -76,11 +75,6 @@ watch(() => route.query.t, (newTimestamp, oldTimestamp) => {
   if (newTimestamp && newTimestamp !== oldTimestamp)
     fetchPost()
 })
-
-const handleCommentModalOpened = () => {
-  // Clear query params after modal is opened to prevent re-opening on refresh
-  // This is optional - depends on UX preference
-}
 
 const fetchPost = async () => {
   isLoading.value = true
