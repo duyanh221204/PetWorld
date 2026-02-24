@@ -4,7 +4,6 @@ import com.duyanhnguyen.petworld.backend.dto.response.ApiResponse;
 import com.duyanhnguyen.petworld.backend.dto.response.ChatResponse;
 import com.duyanhnguyen.petworld.backend.service.ChatMessageService;
 import com.duyanhnguyen.petworld.backend.service.ChatService;
-import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
