@@ -11,7 +11,7 @@ public interface ChatMessageMapper {
 
     @Mapping(source = "chat.id", target = "chatId")
     @Mapping(source = "sender.id", target = "senderId")
-    @Mapping(source = "sender.username", target = "senderName")
+    @Mapping(source = "sender.username", target = "senderUsername")
     @Mapping(source = "sender.avatar", target = "senderAvatar")
     ChatMessageResponse toResponse(ChatMessageEntity entity);
 
