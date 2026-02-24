@@ -26,7 +26,7 @@ public class ChatMessageResponse {
 
     Long senderId;
 
-    Long senderUsername;
+    String senderUsername;
 
     String senderAvatar;
 

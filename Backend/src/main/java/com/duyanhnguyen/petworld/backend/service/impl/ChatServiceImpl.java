@@ -37,6 +37,7 @@ public class ChatServiceImpl implements ChatService {
                             : chat.getUser2HasUnread();
 
                     ChatResponse chatResponse = chatMapper.toResponse(chat);
+                    chatResponse.setOtherUserId(otherUser.getId());
                     chatResponse.setName(otherUser.getUsername());
                     chatResponse.setAvatar(otherUser.getAvatar());
                     chatResponse.setHasUnread(hasUnread);

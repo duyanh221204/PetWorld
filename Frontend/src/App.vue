@@ -6,7 +6,10 @@
 
 <script setup>
 import { useNotifications } from '@/composables/useNotifications'
+import { useChat } from '@/composables/useChat'
+
 useNotifications()
+useChat()
 </script>
 
 <style scoped>

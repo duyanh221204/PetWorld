@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ChatMessageRepository extends JpaRepository<ChatMessageEntity, Long> {
 
-    @EntityGraph(attributePaths = {"sender"})
+    @EntityGraph(attributePaths = {"chat", "sender"})
     Page<ChatMessageEntity> findByChatIdOrderByCreatedAtDesc(Long chatId, Pageable pageable);
 
     @Modifying

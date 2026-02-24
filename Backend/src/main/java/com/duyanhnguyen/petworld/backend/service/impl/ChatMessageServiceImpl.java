@@ -80,6 +80,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 .info(
                         ChatResponse.builder()
                                 .id(chatEntity.getId())
+                                .otherUserId(recipient.getId())
                                 .name(recipient.getUsername())
                                 .avatar(recipient.getAvatar())
                                 .lastMessagedAt(chatEntity.getLastMessagedAt())
@@ -93,6 +94,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 .info(
                         ChatResponse.builder()
                                 .id(chatEntity.getId())
+                                .otherUserId(sender.getId())
                                 .name(sender.getUsername())
                                 .avatar(sender.getAvatar())
                                 .lastMessagedAt(chatEntity.getLastMessagedAt())

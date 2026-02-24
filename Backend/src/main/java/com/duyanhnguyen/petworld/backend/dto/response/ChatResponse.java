@@ -16,6 +16,8 @@ public class ChatResponse {
 
     Long id;
 
+    Long otherUserId;
+
     String name;
 
     String avatar;
