@@ -7,6 +7,7 @@ import com.duyanhnguyen.petworld.backend.entity.GroupMembershipEntity;
 import com.duyanhnguyen.petworld.backend.entity.UserEntity;
 import com.duyanhnguyen.petworld.backend.enums.ErrorCode;
 import com.duyanhnguyen.petworld.backend.enums.GroupRole;
+import com.duyanhnguyen.petworld.backend.event.GroupEvent;
 import com.duyanhnguyen.petworld.backend.exception.AppException;
 import com.duyanhnguyen.petworld.backend.mapper.GroupMapper;
 import com.duyanhnguyen.petworld.backend.repository.GroupJoinRequestRepository;
@@ -17,6 +18,7 @@ import com.duyanhnguyen.petworld.backend.service.GroupService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +39,7 @@ public class GroupServiceImpl implements GroupService {
     UserRepository userRepository;
     GroupMembershipRepository groupMembershipRepository;
     GroupJoinRequestRepository groupJoinRequestRepository;
+    ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public Page<GroupResponse> getOwnedGroups(Long currentUserId, Pageable pageable) {
@@ -183,6 +186,7 @@ public class GroupServiceImpl implements GroupService {
         GroupResponse groupResponse = groupMapper.toResponse(groupRepository.save(groupEntity));
         groupResponse.setMemberCount(1L);
         groupResponse.setCurrentUserRole(GroupRole.OWNER);
+        applicationEventPublisher.publishEvent(new GroupEvent(groupResponse.getId()));
         return groupResponse;
     }
 
@@ -198,6 +202,7 @@ public class GroupServiceImpl implements GroupService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
 
         groupMapper.update(groupRequest, groupEntity);
+        applicationEventPublisher.publishEvent(new GroupEvent(groupId));
 
         GroupResponse groupResponse = groupMapper.toResponse(groupEntity);
         groupResponse.setMemberCount(groupMembershipRepository.countByGroupId(groupId));
@@ -216,6 +221,7 @@ public class GroupServiceImpl implements GroupService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
 
         groupRepository.delete(groupEntity);
+        applicationEventPublisher.publishEvent(new GroupEvent(groupId));
     }
 
 }

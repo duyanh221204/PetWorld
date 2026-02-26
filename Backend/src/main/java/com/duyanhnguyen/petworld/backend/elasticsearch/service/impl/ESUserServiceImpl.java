@@ -15,8 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -36,13 +34,13 @@ public class ESUserServiceImpl implements ESUserService {
     }
 
     @Override
-    public List<Long> searchByKeyword(String keyword, Pageable pageable) {
+    public Page<Long> searchByKeyword(String keyword, Pageable pageable) {
         Sort sort = Sort.by("_score").descending().and(Sort.by("usernameSort").ascending())
                 .and(Sort.by("id").descending());
         Pageable esPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
-        Page<ESUserDocument> esUsersPage = esUserRepository.searchByUsername(keyword, pageable);
-        return esUsersPage.map(ESUserDocument::getId).getContent();
+        Page<ESUserDocument> esUsersPage = esUserRepository.searchByUsername(keyword, esPageable);
+        return esUsersPage.map(ESUserDocument::getId);
     }
 
 }
