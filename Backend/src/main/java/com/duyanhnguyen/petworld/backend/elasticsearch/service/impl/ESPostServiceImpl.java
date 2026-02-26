@@ -15,8 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -36,23 +34,23 @@ public class ESPostServiceImpl implements ESPostService {
     }
 
     @Override
-    public List<Long> searchByKeyword(String keyword, Pageable pageable) {
+    public Page<Long> searchByKeyword(String keyword, Pageable pageable) {
         Sort sort = Sort.by("_score").descending().and(Sort.by("createdAt").descending())
                 .and(Sort.by("id").descending());
         Pageable esPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
         Page<ESPostDocument> esPostsPage = esPostRepository.searchByContent(keyword, esPageable);
-        return esPostsPage.map(ESPostDocument::getId).getContent();
+        return esPostsPage.map(ESPostDocument::getId);
     }
 
     @Override
-    public List<Long> searchByKeywordInGroup(String keyword, Long groupId, Pageable pageable) {
+    public Page<Long> searchByKeywordInGroup(String keyword, Long groupId, Pageable pageable) {
         Sort sort = Sort.by("_score").descending().and(Sort.by("createdAt").descending())
                 .and(Sort.by("id").descending());
         Pageable esPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
         Page<ESPostDocument> esPostsPage = esPostRepository.searchByContentAndGroupId(keyword, groupId, esPageable);
-        return esPostsPage.map(ESPostDocument::getId).getContent();
+        return esPostsPage.map(ESPostDocument::getId);
     }
 
 }

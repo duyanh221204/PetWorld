@@ -7,6 +7,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface UserMapper {
 
@@ -14,5 +16,7 @@ public interface UserMapper {
     UserEntity toEntity(UserRegistrationRequest request);
 
     UserResponse toResponse(UserEntity entity);
+
+    List<UserResponse> toResponseList(List<UserEntity> users);
 
 }
