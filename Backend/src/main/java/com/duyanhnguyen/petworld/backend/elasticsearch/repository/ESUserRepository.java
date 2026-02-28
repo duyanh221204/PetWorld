@@ -12,12 +12,11 @@ public interface ESUserRepository extends ElasticsearchRepository<ESUserDocument
 
     @Query("""
     {
-        "match": {
-            "username": {
-                "query": "?0",
-                "fuzziness": "AUTO"
-            }
+      "match_phrase_prefix": {
+        "username": {
+          "query": "?0"
         }
+      }
     }
     """)
     Page<ESUserDocument> searchByUsername(String keyword, Pageable pageable);
