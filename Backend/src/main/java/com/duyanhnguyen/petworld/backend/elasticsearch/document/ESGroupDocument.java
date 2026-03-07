@@ -18,6 +18,7 @@ import java.time.Instant;
 public class ESGroupDocument {
 
     @Id
+    @Field(type = FieldType.Long)
     Long id;
 
     @Field(type = FieldType.Text)

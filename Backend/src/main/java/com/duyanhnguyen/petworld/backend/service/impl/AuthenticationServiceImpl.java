@@ -48,23 +48,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (!passwordEncoder.matches(authenticationRequest.getPassword(), userEntity.getHashedPassword()))
             throw new AppException(ErrorCode.LOGIN_FAILED);
 
-        TokenResponse accessToken = jwtService.generateAccessToken(userEntity);
-        TokenResponse refreshToken = jwtService.generateRefreshToken(userEntity);
-        redisTokenService.saveValidatedRefreshToken(refreshToken.getJwtId(), refreshToken.getExpirationTime());
-
-        return AuthenticationResponse.builder()
-                .accessToken(accessToken.getToken())
-                .refreshToken(refreshToken.getToken())
-                .user(
-                        AuthenticationResponse.User.builder()
-                                .id(userEntity.getId())
-                                .username(userEntity.getUsername())
-                                .avatar(userEntity.getAvatar())
-                                .isActive(userEntity.getIsActive())
-                                .role(userEntity.getRole())
-                                .build()
-                )
-                .build();
+        return createToken(userEntity);
     }
 
     @Transactional
@@ -102,24 +86,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
             UserEntity userEntity = userRepository.findById(userId)
                     .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
-
-            TokenResponse newAccessToken = jwtService.generateAccessToken(userEntity);
-            TokenResponse newRefreshToken = jwtService.generateRefreshToken(userEntity);
-            redisTokenService.saveValidatedRefreshToken(newRefreshToken.getJwtId(), newRefreshToken.getExpirationTime());
-
-            return AuthenticationResponse.builder()
-                    .accessToken(newAccessToken.getToken())
-                    .refreshToken(newRefreshToken.getToken())
-                    .user(
-                            AuthenticationResponse.User.builder()
-                                    .id(userEntity.getId())
-                                    .username(userEntity.getUsername())
-                                    .avatar(userEntity.getAvatar())
-                                    .isActive(userEntity.getIsActive())
-                                    .role(userEntity.getRole())
-                                    .build()
-                    )
-                    .build();
+            return createToken(userEntity);
         } catch (ParseException | JOSEException e) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
@@ -145,6 +112,26 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         } catch (ParseException | JOSEException e) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
+    }
+
+    private AuthenticationResponse createToken(UserEntity userEntity) {
+        TokenResponse accessToken = jwtService.generateAccessToken(userEntity);
+        TokenResponse refreshToken = jwtService.generateRefreshToken(userEntity);
+        redisTokenService.saveValidatedRefreshToken(refreshToken.getJwtId(), refreshToken.getExpirationTime());
+
+        return AuthenticationResponse.builder()
+                .accessToken(accessToken.getToken())
+                .refreshToken(refreshToken.getToken())
+                .user(
+                        AuthenticationResponse.User.builder()
+                                .id(userEntity.getId())
+                                .username(userEntity.getUsername())
+                                .avatar(userEntity.getAvatar())
+                                .isActive(userEntity.getIsActive())
+                                .role(userEntity.getRole())
+                                .build()
+                )
+                .build();
     }
 
 }

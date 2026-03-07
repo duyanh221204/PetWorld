@@ -16,6 +16,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 public class ESUserDocument {
 
     @Id
+    @Field(type = FieldType.Long)
     Long id;
 
     @Field(type = FieldType.Text)

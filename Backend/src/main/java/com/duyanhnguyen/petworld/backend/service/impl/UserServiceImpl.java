@@ -5,7 +5,6 @@ import com.duyanhnguyen.petworld.backend.dto.response.UserResponse;
 import com.duyanhnguyen.petworld.backend.elasticsearch.service.ESUserService;
 import com.duyanhnguyen.petworld.backend.entity.UserEntity;
 import com.duyanhnguyen.petworld.backend.enums.ErrorCode;
-import com.duyanhnguyen.petworld.backend.event.UserEvent;
 import com.duyanhnguyen.petworld.backend.exception.AppException;
 import com.duyanhnguyen.petworld.backend.mapper.UserMapper;
 import com.duyanhnguyen.petworld.backend.repository.FriendshipRepository;
@@ -15,7 +14,6 @@ import com.duyanhnguyen.petworld.backend.service.UserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -39,7 +37,6 @@ public class UserServiceImpl implements UserService {
     FriendshipRepository friendshipRepository;
     PostRepository postRepository;
     ESUserService esUserService;
-    ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public UserResponse register(UserRegistrationRequest userRegistrationRequest) {
@@ -54,7 +51,6 @@ public class UserServiceImpl implements UserService {
         UserResponse userResponse = userMapper.toResponse(userRepository.save(userEntity));
         userResponse.setFriendCount(0L);
         userResponse.setPostCount(0L);
-        applicationEventPublisher.publishEvent(new UserEvent(userResponse.getId()));
         return userResponse;
     }
 
@@ -76,12 +72,12 @@ public class UserServiceImpl implements UserService {
 
         Map<Long, UserEntity> usersMap = users.stream()
                 .collect(Collectors.toMap(UserEntity::getId, Function.identity()));
-        List<UserEntity> sorted = userIds.getContent().stream()
+        users = userIds.getContent().stream()
                 .map(usersMap::get)
                 .filter(Objects::nonNull)
-                .toList();
+                .collect(Collectors.toList());
 
-        List<UserResponse> userResponses = userMapper.toResponseList(sorted);
+        List<UserResponse> userResponses = userMapper.toResponseList(users);
         return new PageImpl<>(userResponses, pageable, userIds.getTotalElements());
     }
 

@@ -15,6 +15,8 @@ public interface GroupService {
 
     Page<GroupResponse> getGroupsNotJoinedOrRequested(Long currentUserId, Pageable pageable);
 
+    Page<GroupResponse> searchByName(String keyword, Pageable pageable);
+
     GroupResponse getGroupById(Long currentUserId, Long groupId);
 
     GroupResponse createGroup(Long currentUserId, GroupRequest groupRequest);

@@ -1,6 +1,5 @@
 package com.duyanhnguyen.petworld.backend.repository;
 
-import com.duyanhnguyen.petworld.backend.entity.GroupJoinRequestEntity;
 import com.duyanhnguyen.petworld.backend.entity.NotificationEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

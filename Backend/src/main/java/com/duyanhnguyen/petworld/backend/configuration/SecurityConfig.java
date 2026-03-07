@@ -34,11 +34,8 @@ import javax.crypto.spec.SecretKeySpec;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SecurityConfig {
 
-    String[] PUBLIC_ENDPOINTS_GET = {};
-    String[] PUBLIC_ENDPOINTS_POST = {"/api/upload", "/api/email/send-verification-code", "/api/users/register",
-            "/api/auth/login", "/api/auth/activate-user", "/api/auth/refresh"};
-    String[] PUBLIC_ENDPOINTS_PUT = {};
-    String[] PUBLIC_ENDPOINTS_DELETE = {};
+    String[] PUBLIC_ENDPOINTS = {"/api/upload", "/api/email/send-verification-code", "/api/users/register",
+            "/api/auth/login", "/api/auth/activate-user", "/api/auth/refresh", "/ws/**"};
 
     @NonFinal
     @Value("${jwt.signer-key}")
@@ -59,11 +56,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(
                         request -> request
-                                .requestMatchers(HttpMethod.GET, PUBLIC_ENDPOINTS_GET).permitAll()
-                                .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS_POST).permitAll()
-                                .requestMatchers(HttpMethod.PUT, PUBLIC_ENDPOINTS_PUT).permitAll()
-                                .requestMatchers(HttpMethod.DELETE, PUBLIC_ENDPOINTS_DELETE).permitAll()
-                                .requestMatchers("/ws/**").permitAll()
+                                .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                                 .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(

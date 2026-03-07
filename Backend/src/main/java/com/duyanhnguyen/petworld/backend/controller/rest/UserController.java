@@ -45,8 +45,8 @@ public class UserController {
     @GetMapping("/{userId}/friends-list")
     public ApiResponse<Page<UserResponse>> getFriendsList(
             @PathVariable Long userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "100") int size
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "100") Integer size
     ) {
         Pageable pageable = PageRequest.of(page, Math.min(size, 100));
         return ApiResponse.<Page<UserResponse>>builder()
@@ -64,6 +64,19 @@ public class UserController {
         return ApiResponse.<FriendshipStatusResponse>builder()
                 .message("Friendship status retrieved successfully")
                 .data(friendshipService.getFriendshipStatus(currentUserId, userId))
+                .build();
+    }
+
+    @GetMapping("/search")
+    public ApiResponse<Page<UserResponse>> searchByUsername(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "100") Integer size
+    ) {
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100));
+        return ApiResponse.<Page<UserResponse>>builder()
+                .message("Users retrieved successfully")
+                .data(userService.searchByUsername(keyword, pageable))
                 .build();
     }
 
