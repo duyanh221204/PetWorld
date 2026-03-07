@@ -17,7 +17,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
 
     @Query(
             value = "select p from PostEntity p " +
-                    "where (p.creator.id = :currentUserId and p.visibility <> com.duyanhnguyen.petworld.backend.enums.PostVisibility.PRIVATE) " +
+                    "where ((p.creator.id = :currentUserId and p.visibility <> com.duyanhnguyen.petworld.backend.enums.PostVisibility.PRIVATE) " +
                     "or p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.PUBLIC " +
                     "or (p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.FRIENDS_ONLY and exists(" +
                     "select 1 from FriendshipEntity f " +
@@ -26,10 +26,10 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
                     "and f.acceptedAt is not null)) " +
                     "or (p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.GROUP_ONLY and exists (" +
                     "select 1 from GroupMembershipEntity gm " +
-                    "where gm.group = p.group and gm.user.id = :currentUserId)) " +
+                    "where gm.group = p.group and gm.user.id = :currentUserId))) " +
                     "order by p.createdAt desc",
             countQuery = "select count(p) from PostEntity p " +
-                    "where (p.creator.id = :currentUserId and p.visibility <> com.duyanhnguyen.petworld.backend.enums.PostVisibility.PRIVATE) " +
+                    "where ((p.creator.id = :currentUserId and p.visibility <> com.duyanhnguyen.petworld.backend.enums.PostVisibility.PRIVATE) " +
                     "or p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.PUBLIC " +
                     "or (p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.FRIENDS_ONLY and exists(" +
                     "select 1 from FriendshipEntity f " +
@@ -38,7 +38,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
                     "and f.acceptedAt is not null)) " +
                     "or (p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.GROUP_ONLY and exists (" +
                     "select 1 from GroupMembershipEntity gm " +
-                    "where gm.group = p.group and gm.user.id = :currentUserId))"
+                    "where gm.group = p.group and gm.user.id = :currentUserId)))"
     )
     @EntityGraph(attributePaths = {"creator", "group"})
     Page<PostEntity> findAllForNewsFeed(@Param("currentUserId") Long currentUserId, Pageable pageable);

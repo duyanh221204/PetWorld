@@ -8,6 +8,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
+
 @Repository
 public interface GroupRepository extends JpaRepository<GroupEntity, Long> {
 
@@ -57,5 +60,7 @@ public interface GroupRepository extends JpaRepository<GroupEntity, Long> {
                     "select 1 from GroupJoinRequestEntity gjr where gjr.group = g and gjr.sender.id = :userId)"
     )
     Page<GroupEntity> findGroupsNotJoinedOrRequestedByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    List<GroupEntity> findAllByIdIn(Collection<Long> ids);
 
 }

@@ -79,6 +79,19 @@ public class GroupController {
                 .build();
     }
 
+    @GetMapping("/search")
+    public ApiResponse<Page<GroupResponse>> searchByName(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "100") Integer size
+    ) {
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100));
+        return ApiResponse.<Page<GroupResponse>>builder()
+                .message("Groups retrieved successfully")
+                .data(groupService.searchByName(keyword, pageable))
+                .build();
+    }
+
     @GetMapping("/{groupId}")
     public ApiResponse<GroupResponse> getGroupById(@AuthenticationPrincipal Jwt jwt, @PathVariable Long groupId) {
         Long currentUserId = Long.parseLong(jwt.getSubject());

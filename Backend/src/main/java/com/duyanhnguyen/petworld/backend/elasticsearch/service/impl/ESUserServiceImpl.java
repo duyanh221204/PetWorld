@@ -26,7 +26,6 @@ public class ESUserServiceImpl implements ESUserService {
 
     @Override
     public void index(Long userId) {
-        System.out.println("HIHI");
         UserEntity userEntity = userRepository.findById(userId).orElse(null);
         if (userEntity != null)
             esUserRepository.save(esUserMapper.toDocument(userEntity));

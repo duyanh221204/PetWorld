@@ -37,7 +37,7 @@ public class ESPostServiceImpl implements ESPostService {
     public Page<Long> searchByKeyword(String keyword, Pageable pageable) {
         Sort sort = Sort.by("_score").descending().and(Sort.by("createdAt").descending())
                 .and(Sort.by("id").descending());
-        Pageable esPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        Pageable esPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize() * 3, sort);
 
         Page<ESPostDocument> esPostsPage = esPostRepository.searchByContent(keyword, esPageable);
         return esPostsPage.map(ESPostDocument::getId);
@@ -47,7 +47,7 @@ public class ESPostServiceImpl implements ESPostService {
     public Page<Long> searchByKeywordInGroup(String keyword, Long groupId, Pageable pageable) {
         Sort sort = Sort.by("_score").descending().and(Sort.by("createdAt").descending())
                 .and(Sort.by("id").descending());
-        Pageable esPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        Pageable esPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize() * 3, sort);
 
         Page<ESPostDocument> esPostsPage = esPostRepository.searchByContentAndGroupId(keyword, groupId, esPageable);
         return esPostsPage.map(ESPostDocument::getId);

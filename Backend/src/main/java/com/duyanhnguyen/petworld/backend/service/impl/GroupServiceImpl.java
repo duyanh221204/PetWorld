@@ -2,6 +2,7 @@ package com.duyanhnguyen.petworld.backend.service.impl;
 
 import com.duyanhnguyen.petworld.backend.dto.request.GroupRequest;
 import com.duyanhnguyen.petworld.backend.dto.response.GroupResponse;
+import com.duyanhnguyen.petworld.backend.elasticsearch.service.ESGroupService;
 import com.duyanhnguyen.petworld.backend.entity.GroupEntity;
 import com.duyanhnguyen.petworld.backend.entity.GroupMembershipEntity;
 import com.duyanhnguyen.petworld.backend.entity.UserEntity;
@@ -27,6 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,6 +42,7 @@ public class GroupServiceImpl implements GroupService {
     UserRepository userRepository;
     GroupMembershipRepository groupMembershipRepository;
     GroupJoinRequestRepository groupJoinRequestRepository;
+    ESGroupService esGroupService;
     ApplicationEventPublisher applicationEventPublisher;
 
     @Override
@@ -151,6 +155,24 @@ public class GroupServiceImpl implements GroupService {
                 )
                 .collect(Collectors.toList());
         return new PageImpl<>(groupResponses, pageable, groupsPage.getTotalElements());
+    }
+
+    @Override
+    public Page<GroupResponse> searchByName(String keyword, Pageable pageable) {
+        Page<Long> groupIds = esGroupService.searchByKeyword(keyword, pageable);
+        if (groupIds.isEmpty())
+            return Page.empty(pageable);
+
+        List<GroupEntity> groups = groupRepository.findAllById(groupIds.getContent());
+        Map<Long, GroupEntity> groupsMap = groups.stream()
+                .collect(Collectors.toMap(GroupEntity::getId, Function.identity()));
+        groups = groupIds.getContent().stream()
+                .map(groupsMap::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        List<GroupResponse> groupResponses = groupMapper.toResponseList(groups);
+        return new PageImpl<>(groupResponses, pageable, groupIds.getTotalElements());
     }
 
     @Override

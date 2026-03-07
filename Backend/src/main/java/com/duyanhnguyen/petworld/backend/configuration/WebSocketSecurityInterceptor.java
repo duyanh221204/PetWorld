@@ -26,7 +26,7 @@ public class WebSocketSecurityInterceptor implements ChannelInterceptor {
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor stompHeaderAccessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-        if (stompHeaderAccessor == null)
+        if (stompHeaderAccessor == null || stompHeaderAccessor.getCommand() == null)
             return message;
 
         if (StompCommand.CONNECT.equals(stompHeaderAccessor.getCommand())) {
