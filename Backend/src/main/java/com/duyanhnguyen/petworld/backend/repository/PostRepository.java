@@ -17,7 +17,10 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
 
     @Query(
             value = "select p from PostEntity p " +
-                    "where ((p.creator.id = :currentUserId and p.visibility <> com.duyanhnguyen.petworld.backend.enums.PostVisibility.PRIVATE) " +
+                    "where ((p.creator.id = :currentUserId and p.visibility <> com.duyanhnguyen.petworld.backend.enums.PostVisibility.PRIVATE " +
+                    "and (p.visibility <> com.duyanhnguyen.petworld.backend.enums.PostVisibility.GROUP_ONLY or exists (" +
+                    "select 1 from GroupMembershipEntity gm " +
+                    "where gm.group = p.group and gm.user.id = :currentUserId))) " +
                     "or p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.PUBLIC " +
                     "or (p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.FRIENDS_ONLY and exists(" +
                     "select 1 from FriendshipEntity f " +
@@ -29,7 +32,10 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
                     "where gm.group = p.group and gm.user.id = :currentUserId))) " +
                     "order by p.createdAt desc",
             countQuery = "select count(p) from PostEntity p " +
-                    "where ((p.creator.id = :currentUserId and p.visibility <> com.duyanhnguyen.petworld.backend.enums.PostVisibility.PRIVATE) " +
+                    "where ((p.creator.id = :currentUserId and p.visibility <> com.duyanhnguyen.petworld.backend.enums.PostVisibility.PRIVATE " +
+                    "and (p.visibility <> com.duyanhnguyen.petworld.backend.enums.PostVisibility.GROUP_ONLY or exists (" +
+                    "select 1 from GroupMembershipEntity gm " +
+                    "where gm.group = p.group and gm.user.id = :currentUserId))) " +
                     "or p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.PUBLIC " +
                     "or (p.visibility = com.duyanhnguyen.petworld.backend.enums.PostVisibility.FRIENDS_ONLY and exists(" +
                     "select 1 from FriendshipEntity f " +
