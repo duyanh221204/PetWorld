@@ -18,10 +18,10 @@ public interface NotificationRepository extends JpaRepository<NotificationEntity
 
     @Override
     @NonNull
-    @EntityGraph(attributePaths = {"sender", "recipient", "post", "comment", "comment.rootComment", "friendship", "group"})
+    @EntityGraph(attributePaths = {"sender", "recipient", "post", "comment", "comment.rootComment", "friendship", "group", "groupJoinRequest"})
     Optional<NotificationEntity> findById(@NonNull Long id);
 
-    @EntityGraph(attributePaths = {"sender", "recipient", "post", "comment", "comment.rootComment", "friendship", "group"})
+    @EntityGraph(attributePaths = {"sender", "recipient", "post", "comment", "comment.rootComment", "friendship", "group", "groupJoinRequest"})
     Page<NotificationEntity> findByRecipientIdOrderByCreatedAtDesc(Long recipientId, Pageable pageable);
 
     Long countByRecipientIdAndIsRead(Long recipientId, Boolean isRead);
