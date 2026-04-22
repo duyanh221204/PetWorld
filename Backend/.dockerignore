@@ -1,0 +1,8 @@
+.idea
+target
+.gitignore
+.gitattributes
+.git
+Dockerfile
+.env
+*.log
