@@ -1,4 +1,4 @@
-create database pet_world;
+create database if not exists pet_world;
 use pet_world;
 
 create table user_groups
@@ -293,3 +293,7 @@ create table reactions
 );
 create index idx_r_post_created on reactions (post_id, created_at);
 create index idx_r_sender_post on reactions (sender_id, post_id);
+
+create user if not exists 'duyanh221204'@'%' identified by '22122004';
+grant all privileges on pet_world.* to 'duyanh221204'@'%';
+flush privileges;

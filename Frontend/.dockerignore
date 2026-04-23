@@ -5,5 +5,4 @@ dist
 .gitignore
 .git
 Dockerfile
-.env
 *.log
