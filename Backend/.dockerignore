@@ -4,5 +4,4 @@ target
 .gitattributes
 .git
 Dockerfile
-.env
 *.log
