@@ -60,10 +60,10 @@ services:
       - pet_world_network
 
   backend:
-    build: ./Backend
+    build: ../Backend
     container_name: pet_world_backend
     env_file:
-      - ./Backend/.env
+      - ../Backend/.env
     ports:
       - "8080:8080"
     depends_on:
@@ -75,10 +75,10 @@ services:
       - pet_world_network
 
   frontend:
-    build: ./Frontend
+    build: ../Frontend
     container_name: pet_world_frontend
     env_file:
-      - ./Frontend/.env
+      - ../Frontend/.env
     ports:
       - "5173:80"
     depends_on:
